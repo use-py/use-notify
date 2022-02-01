@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import requests
-from loguru import logger
+import logging
 
 from notify.notification import Notification
+
+logger = logging.getLogger(__name__)
 
 
 class PushDeer(Notification):

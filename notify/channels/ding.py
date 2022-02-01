@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 
 import requests
-from loguru import logger
 
 from notify.notification import Notification
+
+logger = logging.getLogger(__name__)
 
 
 class Ding(Notification):

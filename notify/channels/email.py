@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+import logging
 import smtplib
 from email.header import Header
 from email.mime.text import MIMEText
 
-from loguru import logger
-
 from notify.notification import Notification
+
+logger = logging.getLogger(__name__)
 
 
 class Email(Notification):

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from loguru import logger
+import logging
 from notify.notification import Notification
+
+logger = logging.getLogger(__name__)
 
 
 class Custom(Notification):

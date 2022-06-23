@@ -8,10 +8,10 @@ CHANNELS = {
         'ACCESS_TOKEN': "b2567442-*******-fa89e9f584da"
     },
     'EMAIL': {
-        'HOST': 'smtp.163.com',
+        'SERVER': 'smtp.163.com',
         'PORT': 465,
-        'USER': '****@163.com',
-        'PWD': '****',
+        'USERNAME': '****@163.com',
+        'PASSWORD': '****',
         'RECEIVERS': ['10001@qq.com']
     }
 }

@@ -9,7 +9,7 @@ with io.open("README.md", 'r', encoding='utf-8') as f:
 
 setup(
     name="ml-simple-notify",
-    version="0.0.6",
+    version="0.1.1",
     keywords=("notice", "notification", "微信通知", "钉钉通知", "bark通知", "消息通知"),
     description="一个简单可扩展的消息通知库",
     long_description=long_description,

@@ -14,21 +14,31 @@ class Notification(metaclass=ABCMeta):
 
 class Notify(Notification):
     """消息通知分发入口"""
-    def __init__(self, settings):
-        if settings is None:
-            from . import default_settings
-            settings = default_settings
-        self.settings = settings
-        self.triggers = self.settings.TRIGGERS
-        self.channels = Dict(self.settings.CHANNELS)
+    def __init__(self, triggers, channels):
+        self.triggers = triggers
+        self.channels = Dict(channels)
 
     def send_message(self, content, title=None):
-        self.triggers = sort_dict_by_value(self.triggers, reverse=False)
-        objs = [import_object(trigger[0]) for trigger in self.triggers.items()]
-        for obj in objs:
-            notify = obj.from_settings(self.channels)
+        channels = self._create_channels()
+        for channel in channels:
+            notify = channel.from_settings(self.channels)
             notify.send_message(content=content, title=title)
+
+    def _create_channels(self):
+        if isinstance(self.triggers, dict):
+            self.triggers = sort_dict_by_value(self.triggers, reverse=False)
+            objs = [import_object(trigger[0]) for trigger in self.triggers.items()]
+        elif isinstance(self.triggers, list):
+            objs = [import_object(trigger[0]) for trigger in self.triggers]
+        elif isinstance(self.triggers, str):
+            objs = [import_object(self.triggers)]
+        else:
+            raise TypeError("triggers type error")
+        return objs
 
     @classmethod
     def from_settings(cls, settings=None):
-        return cls(settings)
+        if settings is None:
+            from . import default_settings
+            settings = default_settings
+        return cls(settings.TRIGGERS, settings.CHANNELS)

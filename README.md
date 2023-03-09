@@ -1,5 +1,13 @@
 ### 一个简单可扩展的消息通知库
 
+<a href="https://pypi.org/project/ml-simple-notify" target="_blank">
+    <img src="https://img.shields.io/pypi/v/ml-simple-notify.svg" alt="Package version">
+</a>
+
+<a href="https://pypi.org/project/ml-simple-notify" target="_blank">
+    <img src="https://img.shields.io/pypi/pyversions/ml-simple-notify.svg" alt="Supported Python versions">
+</a>
+
 #### 安装
 
 > pip install ml-simple-notify

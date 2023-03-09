@@ -15,7 +15,7 @@
 #### 使用
 
 ```python
-from src.notify import useNotify, channels
+from notify import useNotify, channels
 
 notify = useNotify()
 notify.add(
@@ -44,7 +44,7 @@ notify.publish(title="消息标题", content="消息正文")
 #### 自己开发消息通知
 
 ```python
-from src.notify.channels import BaseChannel
+from notify.channels import BaseChannel
 
 
 class Custom(BaseChannel):

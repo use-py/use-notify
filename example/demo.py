@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from src.notify import useNotify, channels
+from notify import useNotify, channels
 
 notify = useNotify()
 notify.add(

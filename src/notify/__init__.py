@@ -1,3 +1,3 @@
-from src.notify.notification import Notify
+from .notification import Notify
 
 useNotify = Notify

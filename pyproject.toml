@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ml-simple-notify"
-version = "0.2.0"
+version = "0.2.1"
 description = "一个简单可扩展的消息通知库"
 authors = ["miclon <jcnd@163.com>"]
 readme = "README.md"

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "usepy-plugin-notify"
+name = "usepy_plugin_notify"
 version = "0.2.2"
 description = "一个简单可扩展的消息通知库"
 authors = ["miclon <jcnd@163.com>"]

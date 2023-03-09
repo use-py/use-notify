@@ -10,7 +10,7 @@
 
 #### 安装
 
-> pip install ml-simple-notify
+> pip install usepy_plugin_notify
 
 #### 使用
 

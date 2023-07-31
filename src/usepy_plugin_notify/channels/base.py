@@ -10,3 +10,7 @@ class BaseChannel(metaclass=ABCMeta):
     @abstractmethod
     def send(self, message):
         raise NotImplementedError
+
+    @abstractmethod
+    async def send_async(self, message):
+        raise NotImplementedError

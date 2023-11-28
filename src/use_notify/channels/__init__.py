@@ -1,5 +1,5 @@
-from .base import BaseChannel
 from .bark import Bark
+from .base import BaseChannel
 from .chanify import Chanify
 from .ding import Ding
 from .email import Email

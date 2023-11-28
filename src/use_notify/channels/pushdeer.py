@@ -13,11 +13,11 @@ class PushDeer(BaseChannel):
 
     @property
     def api_url(self):
-        return f'https://api2.pushdeer.com/message/push?pushkey={self.config.token}&text={{text}}'
+        return f"https://api2.pushdeer.com/message/push?pushkey={self.config.token}&text={{text}}"
 
     @property
     def headers(self):
-        return {'Content-Type': 'application/x-www-form-urlencoded'}
+        return {"Content-Type": "application/x-www-form-urlencoded"}
 
     def build_api_body(self, content, title=None):
         return self.api_url.format_map({"text": f"{title}\n{content}"})

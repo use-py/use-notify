@@ -1,5 +1,6 @@
 import pytest
-from usepy_plugin_notify.notification import Publisher, Notify
+
+from use_notify.notification import Notify, Publisher
 
 
 @pytest.fixture
@@ -27,8 +28,8 @@ def test_publisher_publish(publisher):
 
 
 def test_notify_inherits_publisher_methods(notify):
-    assert hasattr(notify, 'add')
-    assert hasattr(notify, 'publish')
+    assert hasattr(notify, "add")
+    assert hasattr(notify, "publish")
 
 
 class MockChannel:

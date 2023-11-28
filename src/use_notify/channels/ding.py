@@ -12,20 +12,21 @@ class Ding(BaseChannel):
     """钉钉消息通知
     https://developers.dingtalk.com/document/app/custom-robot-access?spm=ding_open_doc.document.0.0.6d9d28e1QcCPII#topic-2026027
     """
+
     @property
     def api_url(self):
-        return f'https://oapi.dingtalk.com/robot/send?access_token={self.config.token}'
+        return f"https://oapi.dingtalk.com/robot/send?access_token={self.config.token}"
 
     @property
     def headers(self):
-        return {'Content-Type': 'application/json'}
+        return {"Content-Type": "application/json"}
 
     def build_api_body(self, content, title=None):
-        title = title or '消息提醒'
+        title = title or "消息提醒"
         return {
             "msgtype": "markdown",
             "markdown": {"title": title, "text": content},
-            "at": {"isAtAll": self.config.at_all}
+            "at": {"isAtAll": self.config.at_all},
         }
 
     def send(self, content, title=None):

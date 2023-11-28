@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import asyncio
-from typing import Optional, List
+from typing import List, Optional
 
 from .channels import BaseChannel
 
@@ -34,13 +34,11 @@ class Publisher:
         """
         Publish a notification asynchronously to all channels.
         """
-        tasks = [
-            channel.send_async(*args, **kwargs)
-            for channel in self.channels
-        ]
+        tasks = [channel.send_async(*args, **kwargs) for channel in self.channels]
         await asyncio.gather(*tasks)
 
 
 class Notify(Publisher):
     """A subclass of Publisher that represents a notification publisher."""
+
     pass

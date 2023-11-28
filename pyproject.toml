@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "usepy-plugin-notify"
+name = "use-notify"
 version = "0.3.0"
 description = "一个简单可扩展的异步消息通知库"
 authors = ["miclon <jcnd@163.com>"]
 readme = "README.md"
 packages = [
-    { include = 'usepy_plugin_notify', from = 'src' }
+    { include = 'use_notify', from = 'src' }
 ]
 
 [tool.poetry.dependencies]
@@ -15,7 +15,13 @@ httpx = "^0.23.3"
 
 
 [tool.poetry.group.test.dependencies]
-pytest = "^7.4.0"
+pylint = "*"
+pytest = "*"
+black = "*"
+flake8 = "*"
+isort = "*"
+pre-commit = "*"
+pre-commit-hooks = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -14,16 +14,18 @@ class WeChat(BaseChannel):
 
     @property
     def api_url(self):
-        return f'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={self.config.token}'
+        return (
+            f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={self.config.token}"
+        )
 
     @property
     def headers(self):
-        return {'Content-Type': 'application/json'}
+        return {"Content-Type": "application/json"}
 
     @staticmethod
     def build_api_body(content):
         api_body = {"markdown": {"content": content}, "msgtype": "markdown"}
-        return json.dumps(api_body).encode('utf-8')
+        return json.dumps(api_body).encode("utf-8")
 
     def send(self, content, title=None):
         api_body = self.build_api_body(content)

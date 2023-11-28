@@ -22,29 +22,30 @@ class Email(BaseChannel):
 
     @staticmethod
     def build_message(content, title=None):
-        message = MIMEText(content, 'html', 'utf-8')
-        message['From'] = Header('notify', 'utf-8')
-        subject = title or '消息提醒'
-        message['Subject'] = Header(subject, 'utf-8')
+        message = MIMEText(content, "html", "utf-8")
+        message["From"] = Header("notify", "utf-8")
+        subject = title or "消息提醒"
+        message["Subject"] = Header(subject, "utf-8")
         return message.as_string()
 
     def send(self, content, title=None):
         if not self.config.receivers:
-            logger.error('请先设置接收邮箱<receivers>')
+            logger.error("请先设置接收邮箱<receivers>")
             return
         message = self.build_message(content, title)
 
         self.smtp.sendmail(self.config.sender, self.config.receivers, message)
-        logger.debug('邮件通知推送成功')
+        logger.debug("邮件通知推送成功")
 
     async def send_async(self, content, title=None):
         if not self.config.receivers:
-            logger.error('请先设置接收邮箱<receivers>')
+            logger.error("请先设置接收邮箱<receivers>")
             return
         message = self.build_message(content, title)
 
         loop = asyncio.get_event_loop()
-        sendmail_func = partial(self.smtp.sendmail, self.config.sender, self.config.receivers, message)
+        sendmail_func = partial(
+            self.smtp.sendmail, self.config.sender, self.config.receivers, message
+        )
         await loop.run_in_executor(None, sendmail_func)
-        logger.debug('邮件通知推送成功')
-
+        logger.debug("邮件通知推送成功")

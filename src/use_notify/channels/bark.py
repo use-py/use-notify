@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+
 import httpx
 
 from .base import BaseChannel
@@ -12,11 +13,11 @@ class Bark(BaseChannel):
 
     @property
     def api_url(self):
-        return f'https://api.day.app/{self.config.token}/{{title}}/{{content}}'
+        return f"https://api.day.app/{self.config.token}/{{title}}/{{content}}"
 
     @property
     def headers(self):
-        return {'Content-Type': 'application/x-www-form-urlencoded'}
+        return {"Content-Type": "application/x-www-form-urlencoded"}
 
     def send(self, content, title=None):
         api_url = self.api_url.format_map({"content": content, "title": title})

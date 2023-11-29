@@ -8,7 +8,7 @@ from use_notify import channels as channels_models
 class Publisher:
     """A class that publishes notifications to multiple channels."""
 
-    def __init__(self, channels: Optional[List[channels_models]] = None):
+    def __init__(self, channels: Optional[List[channels_models.BaseChannel]] = None):
         if channels is None:
             channels = []
         self.channels = channels

@@ -2,13 +2,13 @@
 import asyncio
 from typing import List, Optional
 
-from .channels import BaseChannel
+from use_notify import channels as channels_models
 
 
 class Publisher:
     """A class that publishes notifications to multiple channels."""
 
-    def __init__(self, channels: Optional[List[BaseChannel]] = None):
+    def __init__(self, channels: Optional[List[channels_models]] = None):
         if channels is None:
             channels = []
         self.channels = channels
@@ -41,4 +41,29 @@ class Publisher:
 class Notify(Publisher):
     """A subclass of Publisher that represents a notification publisher."""
 
-    pass
+    @classmethod
+    def from_settings(cls, settings: dict):
+        """
+        Create a Notify instance from a settings object.
+
+        Args:
+            settings: A settings object.
+        Example:
+            settings = {
+            ...     "BARK": {"token": "your token"},
+            ...     "DINGTALK": {"access_token": "your access token"},
+            ... }
+            notify = Notify.from_settings(settings)
+            notify.publish(title="消息标题", content="消息正文")
+
+        Returns:
+            A Notify instance.
+        """
+        channels = []
+        for channel, cfg in settings.items():
+            channel_cls = getattr(channels_models, channel.title(), None)
+            if not channel_cls:
+                raise ValueError(f"Unknown channel {channel}")
+            channel = channel_cls(cfg)
+            channels.append(channel)
+        return cls(channels)

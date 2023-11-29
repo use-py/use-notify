@@ -10,10 +10,6 @@ format: ## Formasts you code with Black
 	poetry run isort .
 	poetry run black .
 
-run: ## run `poetry run {{ cookiecutter.package_name }}`
-	poetry run {{ cookiecutter.package_name }}
-
-
 test:
 	poetry run pytest -v tests
 

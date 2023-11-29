@@ -1,21 +1,23 @@
 ### 一个简单可扩展的异步消息通知库
 
-<a href="https://pypi.org/project/usepy-plugin-notify" target="_blank">
-    <img src="https://img.shields.io/pypi/v/usepy-plugin-notify.svg" alt="Package version">
+<a href="https://pypi.org/project/use-notify" target="_blank">
+    <img src="https://img.shields.io/pypi/v/use-notify.svg" alt="Package version">
 </a>
 
-<a href="https://pypi.org/project/usepy-plugin-notify" target="_blank">
-    <img src="https://img.shields.io/pypi/pyversions/usepy-plugin-notify.svg" alt="Supported Python versions">
+<a href="https://pypi.org/project/use-notify" target="_blank">
+    <img src="https://img.shields.io/pypi/pyversions/use-notify.svg" alt="Supported Python versions">
 </a>
 
 #### 安装
 
-> pip install usepy-plugin-notify
+> pip install use-notify
 
 #### 使用
 
 ```python
-from usepy.plugin import useNotify, useNotifyChannel
+from use_notify import useNotify, useNotifyChannel
+# if you use usepy, also can use `usepy.plugin`
+# from usepy.plugin import useNotify, useNotifyChannel
 
 notify = useNotify()
 notify.add(
@@ -44,7 +46,7 @@ notify.publish(title="消息标题", content="消息正文")
 #### 自己开发消息通知
 
 ```python
-from usepy.plugin import useNotifyChannel
+from use_notify import useNotifyChannel
 
 
 class Custom(useNotifyChannel.BaseChannel):

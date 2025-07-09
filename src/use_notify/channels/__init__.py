@@ -6,7 +6,7 @@ from .ding import Ding
 from .email import Email
 from .pushdeer import PushDeer
 from .pushover import PushOver
-from .wechat import Wechat
+from .wechat import WeChat
 
 # 兼容wecom
-WeCom = Wechat
+WeCom = WeChat

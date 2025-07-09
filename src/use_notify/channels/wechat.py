@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
 import logging
 
 import httpx
@@ -25,7 +24,7 @@ class WeChat(BaseChannel):
     @staticmethod
     def build_api_body(content):
         api_body = {"markdown": {"content": content}, "msgtype": "markdown"}
-        return json.dumps(api_body).encode("utf-8")
+        return api_body
 
     def send(self, content, title=None):
         api_body = self.build_api_body(content)

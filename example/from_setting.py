@@ -1,8 +1,8 @@
 from use_notify import useNotify
 
 settings = {
-    "bark": {
-        "token": "YOUR_BARK_TOKEN",
+    "wecom": {
+        "token": "__TOKEN__",
     }
 }
 

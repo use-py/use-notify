@@ -14,7 +14,7 @@ def test_from_settings():
 
 def test_two_from_settings():
     settings = {
-        "bark": {"token": "1"}
+        "bArk": {"token": "1"}
     }
     notify = useNotify.from_settings(settings)
     notify.add(useNotifyChannel.Bark({"token": "2"}))

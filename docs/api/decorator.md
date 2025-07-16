@@ -753,7 +753,7 @@ if os.getenv("DEBUG") == "true":
     @notify(
         include_args=True,
         include_result=True,
-        success_template="🐛 调试信息\n函数: {func_name}\n参数: {args}\n结果: {result}\n耗时: {duration:.3f}秒"
+        success_template="🐛 调试信息\n函数: {func_name}\n参数: {args}\n结果: {result}\n耗时: {execution_time:.3f}秒"
     )
     def debug_function(param1, param2="default"):
         return f"处理 {param1} 和 {param2}"

@@ -131,7 +131,7 @@ result = await async_file_processing("/path/to/file.txt")
     success_template="🎉 函数 {function_name} 在 {timestamp} 执行成功\n" +
                     "参数: {args}\n" +
                     "结果: {result}\n" +
-                    "耗时: {duration:.3f}秒",
+                    "耗时: {execution_time:.3f}秒",
     include_args=True,
     include_result=True
 )
@@ -202,7 +202,7 @@ def backup_file(file_path, backup_path):
 ```python
 @notify(
     title="API 调用监控",
-    success_template="📡 API 调用成功\nURL: {args[0]}\n响应时间: {duration:.3f}秒",
+    success_template="📡 API 调用成功\nURL: {args[0]}\n响应时间: {execution_time:.3f}秒",
     error_template="🔥 API 调用失败\nURL: {args[0]}\n错误: {error}",
     include_args=True,
     timeout=10

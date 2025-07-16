@@ -12,6 +12,7 @@ packages = [
 python = "^3.8"
 usepy = "^0.2.6"
 httpx = "^0.23.3"
+loguru = "^0.7.3"
 
 
 [tool.poetry.group.test.dependencies]

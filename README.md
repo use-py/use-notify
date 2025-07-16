@@ -33,6 +33,43 @@ notify.publish(title="消息标题", content="消息正文")
 
 ```
 
+#### Loguru 日志上报集成
+
+支持通过 `logger.report()` 方法实现日志上报功能：
+
+```python
+from loguru import logger
+from use_notify import setup_loguru_reporter
+from typing import TYPE_CHECKING
+
+# 为了更好的类型检查支持
+if TYPE_CHECKING:
+    from use_notify.loguru_types import ExtendedLogger
+    logger = logger  # type: ExtendedLogger
+
+# 配置通知渠道
+settings = {
+    "BARK": {"token": "your_bark_token"},
+    "WECHAT": {"token": "your_wechat_token"},
+}
+
+# 设置日志上报器（ERROR级别及以上会触发上报）
+setup_loguru_reporter(settings=settings, level="ERROR")
+
+# 现在可以使用 logger.report() 进行上报
+logger.report("这是一条需要上报的错误消息")
+
+# 指定级别和额外信息
+logger.report(
+    "系统出现异常", 
+    level="CRITICAL",
+    服务器="web-01",
+    错误代码="E001"
+)
+```
+
+详细使用说明请参考 [LOGURU_INTEGRATION.md](LOGURU_INTEGRATION.md)
+
 #### 支持的消息通知渠道列表
 
 - Wechat

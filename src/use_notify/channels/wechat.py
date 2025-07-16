@@ -22,18 +22,19 @@ class WeChat(BaseChannel):
         return {"Content-Type": "application/json"}
 
     @staticmethod
-    def build_api_body(content):
+    def build_api_body(title, content):
+        content = f"## {title}\n\n{content}"
         api_body = {"markdown": {"content": content}, "msgtype": "markdown"}
         return api_body
 
     def send(self, content, title=None):
-        api_body = self.build_api_body(content)
+        api_body = self.build_api_body(title, content)
         with httpx.Client() as client:
             client.post(self.api_url, json=api_body, headers=self.headers)
         logger.debug("`WeChat` send successfully")
 
     async def send_async(self, content, title=None):
-        api_body = self.build_api_body(content)
+        api_body = self.build_api_body(title, content)
         async with httpx.AsyncClient() as client:
             await client.post(self.api_url, json=api_body, headers=self.headers)
         logger.debug("`WeChat` send successfully")

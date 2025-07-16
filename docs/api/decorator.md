@@ -166,7 +166,7 @@ calculate_sum(7, 8)  # 通知中会显示结果: 15
 
 ```python
 @notify(
-    success_template="✅ 函数 {func_name} 成功执行\n参数: {args}\n结果: {result}\n耗时: {duration:.2f}秒"
+    success_template="✅ 函数 {func_name} 成功执行\n参数: {args}\n结果: {result}\n耗时: {execution_time:.2f}秒"
 )
 def detailed_task(task_name):
     time.sleep(1)  # 模拟耗时操作
@@ -192,7 +192,7 @@ def process_records():
 
 ```python
 @notify(
-    failure_template="❌ 函数 {func_name} 执行失败\n错误: {error}\n参数: {args}\n耗时: {duration:.2f}秒"
+    failure_template="❌ 函数 {func_name} 执行失败\n错误: {error}\n参数: {args}\n耗时: {execution_time:.2f}秒"
 )
 def risky_task(operation):
     if operation == "dangerous":
@@ -285,7 +285,7 @@ asyncio.run(main())
     success_template="""
 ✅ 执行成功
 📋 函数: {func_name}
-⏱️ 耗时: {duration:.2f}秒
+⏱️ 耗时: {execution_time:.2f}秒
 📥 参数: {args}
 📤 结果: {result}
 🕐 时间: {timestamp}
@@ -293,7 +293,7 @@ asyncio.run(main())
     failure_template="""
 ❌ 执行失败
 📋 函数: {func_name}
-⏱️ 耗时: {duration:.2f}秒
+⏱️ 耗时: {execution_time:.2f}秒
 📥 参数: {args}
 🚨 错误: {error_type}: {error}
 🕐 时间: {timestamp}
@@ -375,8 +375,8 @@ async def async_data_fetch(url):
 
 @notify(
     timeout=5.0,
-    success_template="✅ 异步任务完成\n结果: {result}\n耗时: {duration:.2f}秒",
-    failure_template="❌ 异步任务失败\n错误: {error}\n耗时: {duration:.2f}秒"
+    success_template="✅ 异步任务完成\n结果: {result}\n耗时: {execution_time:.2f}秒",
+    failure_template="❌ 异步任务失败\n错误: {error}\n耗时: {execution_time:.2f}秒"
 )
 async def async_task_with_timeout():
     """带超时的异步任务"""
@@ -430,7 +430,7 @@ class ConditionalNotifyDecorator:
         def decorator(func):
             @notify(
                 title="长时间运行任务: {func_name}",
-                success_template="⏰ 任务完成\n耗时: {duration:.2f}秒 (超过 {min_duration}秒)"
+                success_template="⏰ 任务完成\n耗时: {execution_time:.2f}秒 (超过 {min_duration}秒)"
             )
             def wrapper(*args, **kwargs):
                 start_time = time.time()
@@ -542,11 +542,11 @@ def timing(func):
         try:
             result = func(*args, **kwargs)
             duration = time.time() - start
-            print(f"{func.__name__} 执行成功，耗时 {duration:.2f} 秒")
+            print(f"{func.__name__} 执行成功，耗时 {execution_time:.2f} 秒")
             return result
         except Exception as e:
             duration = time.time() - start
-            print(f"{func.__name__} 执行失败，耗时 {duration:.2f} 秒，错误: {e}")
+            print(f"{func.__name__} 执行失败，耗时 {execution_time:.2f} 秒，错误: {e}")
             raise
     return wrapper
 

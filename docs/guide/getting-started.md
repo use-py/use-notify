@@ -97,8 +97,8 @@ result = await async_task()
 
 ```python
 @notify(
-    success_template="✅ 任务 {function_name} 执行成功\n结果: {result}\n耗时: {duration:.2f}秒",
-    error_template="❌ 任务 {function_name} 执行失败\n错误: {error}\n耗时: {duration:.2f}秒"
+    success_template="✅ 任务 {function_name} 执行成功\n结果: {result}\n耗时: {execution_time:.2f}秒",
+    error_template="❌ 任务 {function_name} 执行失败\n错误: {error}\n耗时: {execution_time:.2f}秒"
 )
 def custom_template_task():
     return "自定义模板任务完成"

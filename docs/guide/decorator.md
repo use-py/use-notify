@@ -61,8 +61,8 @@ def silent_task():
 
 ```python
 @notify(
-    success_template="✅ 任务 {function_name} 执行成功\n结果: {result}\n耗时: {duration:.2f}秒",
-    error_template="❌ 任务 {function_name} 执行失败\n错误: {error}\n耗时: {duration:.2f}秒"
+    success_template="✅ 任务 {function_name} 执行成功\n结果: {result}\n耗时: {execution_time:.2f}秒",
+    error_template="❌ 任务 {function_name} 执行失败\n错误: {error}\n耗时: {execution_time:.2f}秒"
 )
 def custom_template_task():
     return "自定义模板任务完成"
@@ -166,7 +166,7 @@ def critical_system_check():
 ```python
 @notify(
     title="数据同步任务",
-    success_template="✅ 数据同步完成\n处理记录数: {result}\n耗时: {duration:.2f}秒",
+    success_template="✅ 数据同步完成\n处理记录数: {result}\n耗时: {execution_time:.2f}秒",
     error_template="❌ 数据同步失败\n错误: {error}",
     include_result=True
 )
@@ -250,8 +250,8 @@ def some_task():
 ```python
 # 包含关键信息
 @notify(
-    success_template="✅ {function_name} 完成\n处理时间: {duration:.2f}秒",
-    error_template="❌ {function_name} 失败\n错误: {error}\n持续时间: {duration:.2f}秒"
+    success_template="✅ {function_name} 完成\n处理时间: {execution_time:.2f}秒",
+    error_template="❌ {function_name} 失败\n错误: {error}\n持续时间: {execution_time:.2f}秒"
 )
 def important_task():
     pass

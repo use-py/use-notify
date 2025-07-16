@@ -1,4 +1,5 @@
 # flake8: noqa: F401
+from .console import Console
 from .bark import Bark
 from .base import BaseChannel
 from .chanify import Chanify

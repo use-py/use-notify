@@ -11,41 +11,20 @@ import asyncio
 import sys
 import os
 import time
-from datetime import datetime
+
+from use_notify.channels.console import Console as ConsoleChannel
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from use_notify import (
     useNotify, 
-    useNotifyChannel, 
     notify, 
     set_default_notify_instance,
     get_default_notify_instance,
     clear_default_notify_instance
 )
 from use_notify.channels.base import BaseChannel
-
-
-# 创建一个模拟通知渠道用于演示
-class ConsoleChannel(BaseChannel):
-    """控制台通知渠道（用于演示）"""
-    
-    def __init__(self, config=None):
-        super().__init__(config or {})
-    
-    def send(self, title, content):
-        """发送通知到控制台"""
-        print(f"\n📢 [默认实例通知] {title}")
-        print(f"📝 {content}")
-        print("-" * 50)
-    
-    async def send_async(self, title, content):
-        """异步发送通知到控制台"""
-        print(f"\n📢 [默认实例异步通知] {title}")
-        print(f"📝 {content}")
-        print("-" * 50)
-
 
 def setup_default_notify_instance():
     """设置全局默认通知实例"""
@@ -60,6 +39,8 @@ def setup_default_notify_instance():
     
     print("✅ 全局默认通知实例设置完成")
     return default_notify
+
+setup_default_notify_instance()
 
 
 # 现在可以直接使用装饰器，无需传递 notify_instance 参数
@@ -158,9 +139,6 @@ def main():
     """主函数"""
     print("🚀 @notify 装饰器全局默认实例演示")
     print("=" * 60)
-    
-    # 1. 设置全局默认通知实例
-    default_notify = setup_default_notify_instance()
     
     print(f"\n📋 当前默认实例: {get_default_notify_instance()}")
     

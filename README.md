@@ -80,7 +80,7 @@ async def async_task():
 - ✅ 全局默认实例，简化使用
 - ✅ 执行上下文信息收集
 
-> 📖 **详细文档**: [装饰器完整使用指南](docs/decorator.md)
+> 📖 **详细文档**: [装饰器完整使用指南](example/decorator.md)
 
 #### 支持的消息通知渠道列表
 

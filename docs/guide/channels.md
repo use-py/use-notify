@@ -117,13 +117,13 @@ Pushdeer 推送服务。
 ```python
 notify.add(useNotifyChannel.Pushdeer({
     "token": "your_pushdeer_token",  # 必需
-    "server": "https://api2.pushdeer.com"  # 可选，默认官方服务器
+    "base_url": "https://api2.pushdeer.com"  # 可选，默认官方服务器
 }))
 ```
 
 **配置参数：**
 - `token` (必需): Pushdeer 设备令牌
-- `server` (可选): Pushdeer 服务器地址
+- `base_url` (可选): Pushdeer 服务器地址
 
 ### Chanify
 
@@ -132,13 +132,30 @@ Chanify 推送服务。
 ```python
 notify.add(useNotifyChannel.Chanify({
     "token": "your_chanify_token",  # 必需
-    "server": "https://api.chanify.net"  # 可选，默认官方服务器
+    "base_url": "https://api.chanify.net"  # 可选，默认官方服务器
 }))
 ```
 
 **配置参数：**
 - `token` (必需): Chanify 设备令牌
-- `server` (可选): Chanify 服务器地址
+- `base_url` (可选): Chanify 服务器地址
+
+### 飞书（Feishu）
+
+飞书自定义机器人通知。
+
+```python
+notify.add(useNotifyChannel.Feishu({
+    "token": "your_feishu_token",  # 必需
+    "at_all": True,  # 可选，是否@所有人
+    "at_user_ids": ["ou_f9fa825035541c7e205e0377b3111111"]  # 可选，@指定用户ID
+}))
+```
+
+**配置参数：**
+- `token` (必需): 飞书自定义机器人的 Webhook Token
+- `at_all` (可选): 是否@所有人，默认 False
+- `at_user_ids` (可选): @指定用户ID列表
 
 ## 多渠道配置
 

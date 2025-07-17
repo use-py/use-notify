@@ -8,6 +8,7 @@ from .email import Email
 from .pushdeer import PushDeer
 from .pushover import PushOver
 from .wechat import WeChat
+from .feishu import Feishu
 
 # 兼容wecom
 WeCom = WeChat

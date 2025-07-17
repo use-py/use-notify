@@ -30,7 +30,6 @@ class PushDeer(BaseChannel):
         if not self.config.token:
             raise ValueError("PushDeer token (pushkey) is required")
         
-
         # Check if base_url exists in config, otherwise use default
         if self.config.base_url:
             base_url = self.config.base_url.rstrip("/")
@@ -92,11 +91,10 @@ class PushDeer(BaseChannel):
             title: 消息标题
         """
         params = self._prepare_params(content, title)
-        msg_type = params.get("type", "markdown")
         
         with httpx.Client() as client:
             client.get(self.api_url, params=params, headers=self.headers)
-        logger.debug(f"`pushdeer` send {msg_type} message successfully")
+        logger.debug(f"`pushdeer` send message successfully")
 
     async def send_async(self, content, title=None):
         """异步发送PushDeer消息
@@ -106,8 +104,7 @@ class PushDeer(BaseChannel):
             title: 消息标题
         """
         params = self._prepare_params(content, title)
-        msg_type = params.get("type", "text")
         
         async with httpx.AsyncClient() as client:
             await client.get(self.api_url, params=params, headers=self.headers)
-        logger.debug(f"`pushdeer` send {msg_type} message successfully")
+        logger.debug(f"`pushdeer` send message successfully")

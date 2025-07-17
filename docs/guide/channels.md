@@ -35,7 +35,6 @@ notify.add(useNotifyChannel.Bark({
 ```python
 notify.add(useNotifyChannel.Ding({
     "token": "your_dingtalk_token",  # 必需
-    "secret": "your_secret",  # 可选，加签密钥
     "at_all": False,  # 可选，是否@所有人
     "at_mobiles": ["13800138000"],  # 可选，@指定手机号
     "at_user_ids": ["user123"]  # 可选，@指定用户ID
@@ -44,7 +43,6 @@ notify.add(useNotifyChannel.Ding({
 
 **配置参数：**
 - `token` (必需): 钉钉机器人的 Webhook Token
-- `secret` (可选): 加签密钥，用于安全验证
 - `at_all` (可选): 是否@所有人，默认 False
 - `at_mobiles` (可选): @指定手机号列表
 - `at_user_ids` (可选): @指定用户ID列表

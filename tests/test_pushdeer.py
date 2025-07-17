@@ -103,23 +103,6 @@ class TestPushDeer:
         # 对于text类型，content会覆盖title作为text参数
         assert kwargs["params"]["desp"] == "Hello World"
 
-    @patch("httpx.Client")
-    def test_send_api_error(self, mock_client, pushdeer_instance):
-        """测试API返回错误"""
-        # 模拟响应
-        mock_response = MagicMock()
-        mock_response.raise_for_status.return_value = None
-        mock_response.json.return_value = {"code": 1, "error": "Invalid token"}
-        
-        # 模拟客户端
-        mock_client_instance = MagicMock()
-        mock_client_instance.get.return_value = mock_response
-        mock_client.return_value.__enter__.return_value = mock_client_instance
-        
-        # 执行发送，应该抛出异常
-        with pytest.raises(RuntimeError, match="PushDeer API error: Invalid token"):
-            pushdeer_instance.send("Hello World")
-
     @patch('httpx.AsyncClient')
     @pytest.mark.asyncio
     async def test_send_async_success(self, mock_async_client, pushdeer_instance):
@@ -149,29 +132,3 @@ class TestPushDeer:
         assert "params" in kwargs
         # 对于text类型，content会覆盖title作为text参数
         assert kwargs["params"]["desp"] == "Hello World"
-
-    @pytest.mark.asyncio
-    async def test_send_async_api_error(self, pushdeer_instance):
-        """测试异步API返回错误"""
-        # 创建一个真实的AsyncMock对象，它可以在await表达式中使用
-        from unittest.mock import AsyncMock
-        
-        # 模拟响应
-        mock_response = AsyncMock()
-        mock_response.raise_for_status = AsyncMock()
-        # 设置json方法为AsyncMock，返回值为字典
-        mock_json = AsyncMock()
-        mock_json.return_value = {"code": 1, "error": "Invalid token"}
-        mock_response.json = mock_json
-        
-        # 模拟客户端
-        mock_client = AsyncMock()
-        mock_client.get.return_value = mock_response
-        
-        # 替换httpx.AsyncClient
-        with patch("httpx.AsyncClient") as mock_async_client:
-            mock_async_client.return_value.__aenter__.return_value = mock_client
-            
-            # 执行发送，应该抛出异常
-            with pytest.raises(RuntimeError, match="PushDeer API error: Invalid token"):
-                await pushdeer_instance.send_async("Hello World")

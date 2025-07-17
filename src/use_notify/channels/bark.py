@@ -13,20 +13,43 @@ class Bark(BaseChannel):
 
     @property
     def api_url(self):
-        return f"https://api.day.app/{self.config.token}/{{title}}/{{content}}"
+        # Check if base_url exists in config, otherwise use default
+        if self.config.base_url:
+            base_url = self.config.base_url.rstrip("/")
+        else:
+            base_url = "https://api.day.app"
+        
+        return f"{base_url}/{self.config.token}"
 
     @property
     def headers(self):
-        return {"Content-Type": "application/x-www-form-urlencoded"}
+        return {"Content-Type": "application/json; charset=utf-8"}
+
+    def _prepare_payload(self, content, title=None):
+        payload = {
+            "body": content,
+        }
+        
+        if title:
+            payload["title"] = title
+            
+        # Optional parameters from config
+        for param in ["badge", "sound", "icon", "group", "url"]:
+            if hasattr(self.config, param) and getattr(self.config, param) is not None:
+                payload[param] = getattr(self.config, param)
+                
+        return payload
 
     def send(self, content, title=None):
-        api_url = self.api_url.format_map({"content": content, "title": title})
+        payload = self._prepare_payload(content, title)
         with httpx.Client() as client:
-            client.get(api_url, headers=self.headers)
+            response = client.post(self.api_url, headers=self.headers, json=payload)
+            response.raise_for_status()
         logger.debug("`bark` send successfully")
 
     async def send_async(self, content, title=None):
-        api_url = self.api_url.format_map({"content": content, "title": title})
+        payload = self._prepare_payload(content, title)
         async with httpx.AsyncClient() as client:
-            await client.get(api_url, headers=self.headers)
+            response = await client.post(self.api_url, headers=self.headers, json=payload)
+            response.raise_for_status()
         logger.debug("`bark` send successfully")

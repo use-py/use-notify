@@ -13,7 +13,13 @@ class Chanify(BaseChannel):
 
     @property
     def api_url(self):
-        return f"https://api.chanify.net/v1/sender/{self.config.token}"
+        # Check if base_url exists in config, otherwise use default
+        if self.config.base_url:
+            base_url = self.config.base_url.rstrip("/")
+        else:
+            base_url = "https://api.chanify.net"
+        
+        return f"{base_url}/v1/sender/{self.config.token}"
 
     @property
     def headers(self):

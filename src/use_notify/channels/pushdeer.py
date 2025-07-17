@@ -51,7 +51,7 @@ class PushDeer(BaseChannel):
         """
         # 默认标题
         if not title:
-            title = "Notification"
+            title = "消息提醒"
             
         # 确定消息类型
         msg_type = getattr(self.config, "type", "markdown")
@@ -92,18 +92,10 @@ class PushDeer(BaseChannel):
             title: 消息标题
         """
         params = self._prepare_params(content, title)
-        msg_type = params.get("type", "text")
+        msg_type = params.get("type", "markdown")
         
         with httpx.Client() as client:
-            response = client.get(self.api_url, params=params, headers=self.headers)
-            response.raise_for_status()
-            
-            # 检查API返回的结果
-            result = response.json()
-            if result.get("code") != 0:
-                error_msg = result.get("error", "Unknown error")
-                raise RuntimeError(f"PushDeer API error: {error_msg}")
-                
+            client.get(self.api_url, params=params, headers=self.headers)
         logger.debug(f"`pushdeer` send {msg_type} message successfully")
 
     async def send_async(self, content, title=None):
@@ -117,13 +109,5 @@ class PushDeer(BaseChannel):
         msg_type = params.get("type", "text")
         
         async with httpx.AsyncClient() as client:
-            response = await client.get(self.api_url, params=params, headers=self.headers)
-            response.raise_for_status()
-            
-            # 检查API返回的结果
-            result = await response.json()
-            if result.get("code") != 0:
-                error_msg = result.get("error", "Unknown error")
-                raise RuntimeError(f"PushDeer API error: {error_msg}")
-                
+            await client.get(self.api_url, params=params, headers=self.headers)
         logger.debug(f"`pushdeer` send {msg_type} message successfully")

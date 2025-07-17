@@ -2,7 +2,7 @@
 import pytest
 import httpx
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 from use_notify.channels.pushdeer import PushDeer
 
@@ -44,7 +44,7 @@ class TestPushDeer:
         """测试文本消息参数准备"""
         params = pushdeer_instance._prepare_params("Hello World")
         assert params["pushkey"] == "test_token"
-        assert params["text"] == "Hello World"
+        assert params["desp"] == "Hello World"
         assert params["type"] == "markdown"
 
     def test_prepare_params_markdown(self):
@@ -101,7 +101,7 @@ class TestPushDeer:
         assert args[0] == pushdeer_instance.api_url
         assert "params" in kwargs
         # 对于text类型，content会覆盖title作为text参数
-        assert kwargs["params"]["text"] == "Hello World"
+        assert kwargs["params"]["desp"] == "Hello World"
 
     @patch("httpx.Client")
     def test_send_api_error(self, mock_client, pushdeer_instance):
@@ -120,12 +120,10 @@ class TestPushDeer:
         with pytest.raises(RuntimeError, match="PushDeer API error: Invalid token"):
             pushdeer_instance.send("Hello World")
 
+    @patch('httpx.AsyncClient')
     @pytest.mark.asyncio
-    async def test_send_async_success(self, pushdeer_instance):
+    async def test_send_async_success(self, mock_async_client, pushdeer_instance):
         """测试异步发送成功"""
-        # 创建一个真实的AsyncMock对象，它可以在await表达式中使用
-        from unittest.mock import AsyncMock
-        
         # 模拟响应
         mock_response = AsyncMock()
         mock_response.raise_for_status = AsyncMock()
@@ -139,19 +137,18 @@ class TestPushDeer:
         mock_client.get.return_value = mock_response
         
         # 替换httpx.AsyncClient
-        with patch("httpx.AsyncClient") as mock_async_client:
-            mock_async_client.return_value.__aenter__.return_value = mock_client
-            
-            # 执行发送
-            await pushdeer_instance.send_async("Hello World", "Test Title")
-            
-            # 验证调用
-            mock_client.get.assert_called_once()
-            args, kwargs = mock_client.get.call_args
-            assert args[0] == pushdeer_instance.api_url
-            assert "params" in kwargs
-            # 对于text类型，content会覆盖title作为text参数
-            assert kwargs["params"]["text"] == "Hello World"
+        mock_async_client.return_value.__aenter__.return_value = mock_client
+        
+        # 执行发送
+        await pushdeer_instance.send_async("Hello World", "Test Title")
+        
+        # 验证调用
+        mock_client.get.assert_called_once()
+        args, kwargs = mock_client.get.call_args
+        assert args[0] == pushdeer_instance.api_url
+        assert "params" in kwargs
+        # 对于text类型，content会覆盖title作为text参数
+        assert kwargs["params"]["desp"] == "Hello World"
 
     @pytest.mark.asyncio
     async def test_send_async_api_error(self, pushdeer_instance):

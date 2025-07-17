@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "use-notify"
-version = "0.3.42"
+version = "0.3.43"
 description = "一个简单可扩展的异步消息通知库"
 authors = ["miclon <jcnd@163.com>"]
 readme = "README.md"

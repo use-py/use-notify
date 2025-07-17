@@ -23,11 +23,18 @@ class Ding(BaseChannel):
 
     def build_api_body(self, content, title=None):
         title = title or "消息提醒"
-        return {
+        api_body = {
             "msgtype": "markdown",
             "markdown": {"title": title, "text": content},
-            "at": {"isAtAll": self.config.at_all},
+            "at": {},
         }
+        if self.config.at_all:
+            api_body["at"]["isAtAll"] = self.config.at_all
+        if self.config.at_mobiles:
+            api_body["at"]["atMobiles"] = self.config.at_mobiles
+        if self.config.at_user_ids:
+            api_body["at"]["atUserIds"] = self.config.at_user_ids
+        return api_body
 
     def send(self, content, title=None):
         api_body = self.build_api_body(content, title)

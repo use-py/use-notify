@@ -21,10 +21,15 @@ class WeChat(BaseChannel):
     def headers(self):
         return {"Content-Type": "application/json"}
 
-    @staticmethod
-    def build_api_body(title, content):
+    def build_api_body(self, title, content):
         content = f"## {title}\n\n{content}"
         api_body = {"markdown": {"content": content}, "msgtype": "markdown"}
+
+        if self.config.mentioned_list:
+            api_body["markdown"]["mentioned_list"] = self.config.mentioned_list
+        if self.config.mentioned_mobile_list:
+            api_body["markdown"]["mentioned_mobile_list"] = self.config.mentioned_mobile_list
+        
         return api_body
 
     def send(self, content, title=None):

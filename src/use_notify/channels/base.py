@@ -1,11 +1,11 @@
 from abc import ABCMeta, abstractmethod
 
-from usepy import useAdDict
+from usepy.dict import AdDict
 
 
 class BaseChannel(metaclass=ABCMeta):
     def __init__(self, config: dict):
-        self.config = useAdDict(config)
+        self.config = AdDict(config)
 
     @abstractmethod
     def send(self, message):

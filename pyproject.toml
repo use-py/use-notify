@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "use-notify"
-version = "0.3.4"
+version = "0.3.42"
 description = "一个简单可扩展的异步消息通知库"
 authors = ["miclon <jcnd@163.com>"]
 readme = "README.md"
@@ -10,8 +10,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-usepy = "^0.2.6"
-httpx = "^0.23.3"
+usepy = "^0.4.0"
+httpx = "*"
 
 
 [tool.poetry.group.test.dependencies]

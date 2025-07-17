@@ -474,7 +474,7 @@ class TestNotifyFactory:
         
         @notify(
             notify_instance=notify_instance,
-            success_template="✅ {function_name} 完成，耗时 {execution_time:.2f}秒",
+            success_template="✅ {function_name} 完成，耗时 {execution_time:.2f}秒，{result}",
             error_template="❌ {function_name} 失败: {error_message}"
         )
         def test_func():
@@ -484,7 +484,7 @@ class TestNotifyFactory:
         
         assert len(mock_channel.sent_messages) == 1
         message = mock_channel.sent_messages[0]
-        assert "完成，耗时" in message["content"]
+        assert "success" in message["content"]
     
     def test_factory_without_notify_instance(self):
         """测试不提供 notify_instance 的工厂函数"""

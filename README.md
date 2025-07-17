@@ -16,8 +16,6 @@
 
 ```python
 from use_notify import useNotify, useNotifyChannel
-# if you use usepy, also can use `usepy.plugin`
-# from usepy.plugin import useNotify, useNotifyChannel
 
 notify = useNotify()
 notify.add(

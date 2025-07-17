@@ -73,7 +73,7 @@ class MessageFormatter:
             format_vars["args_str"] = args_str
             format_vars["kwargs_str"] = kwargs_str
         
-        if self.include_result and context.result is not None:
+        if context.result is not None:
             format_vars["result"] = context.result
             format_vars["result_str"] = self._safe_serialize(context.result)
         

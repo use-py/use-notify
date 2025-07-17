@@ -14,18 +14,20 @@ from use_notify import useNotify, useNotifyChannel
 notify = useNotify()
 notify.add(useNotifyChannel.Bark({
     "token": "your_bark_token",  # 必需
-    "server": "https://api.day.app",  # 可选，默认官方服务器
+    "base_url": "https://api.day.app",  # 可选，默认官方服务器
     "sound": "default",  # 可选，通知声音
     "group": "myapp",  # 可选，通知分组
+    "url": "https://example.com",  # 可选，自定义 URL
     "icon": "https://example.com/icon.png"  # 可选，自定义图标
 }))
 ```
 
 **配置参数：**
 - `token` (必需): Bark 应用中的设备令牌
-- `server` (可选): Bark 服务器地址，默认为官方服务器
+- `base_url` (可选): Bark 服务器地址，默认为官方服务器
 - `sound` (可选): 通知声音，如 "default", "bell", "silence" 等
 - `group` (可选): 通知分组名称
+- `url` (可选): 自定义 URL
 - `icon` (可选): 自定义通知图标 URL
 
 ### 钉钉（DingTalk）

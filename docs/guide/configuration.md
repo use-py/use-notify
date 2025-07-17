@@ -421,7 +421,7 @@ class ConfigValidator:
     REQUIRED_PARAMS = {
         'bark': ['token'],
         'ding': ['token'],
-        'wechat': ['webhook_url'],
+        'wechat': ['token'],
         'email': ['smtp_server', 'smtp_port', 'username', 'password', 'to_emails'],
         'pushover': ['token', 'user'],
         'pushdeer': ['token'],

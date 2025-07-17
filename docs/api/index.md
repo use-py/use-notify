@@ -149,14 +149,14 @@ ding = useNotifyChannel.Ding({
 
 ```python
 wechat = useNotifyChannel.WeChat({
-    "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your_key",
+    "token": "your_key",
     "mentioned_list": ["@all"],  # 可选
     "mentioned_mobile_list": ["13800138000"]  # 可选
 })
 ```
 
 **配置参数：**
-- `webhook_url` (必需): 企业微信机器人 Webhook URL
+- `token` (必需): 企业微信机器人 Webhook Token
 - `mentioned_list` (可选): @成员列表
 - `mentioned_mobile_list` (可选): @手机号列表
 

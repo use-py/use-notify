@@ -257,8 +257,7 @@ notify.publish(
 
 ```python
 config = {
-    "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your_key",  # 必需
-    "msg_type": "text",                   # 可选：消息类型
+    "token": "your_key",  # 必需
     "mentioned_list": ["@all"],           # 可选：@成员列表
     "mentioned_mobile_list": []           # 可选：@手机号列表
 }
@@ -270,8 +269,7 @@ wechat = useNotifyChannel.WeChat(config)
 
 | 参数 | 类型 | 必需 | 默认值 | 说明 |
 |------|------|------|--------|------|
-| `webhook_url` | str | 是 | - | 企业微信机器人 Webhook URL |
-| `msg_type` | str | 否 | `text` | 消息类型：`text`、`markdown`、`news` |
+| `token` | str | 是 | - | 企业微信机器人 Webhook Token |
 | `mentioned_list` | list | 否 | `[]` | @成员的用户ID列表，`@all` 表示所有人 |
 | `mentioned_mobile_list` | list | 否 | `[]` | @成员的手机号列表 |
 
@@ -282,14 +280,7 @@ from use_notify import useNotify, useNotifyChannel
 
 # 基本配置
 wechat = useNotifyChannel.WeChat({
-    "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your_key"
-})
-
-# Markdown 消息
-wechat_md = useNotifyChannel.WeChat({
-    "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your_key",
-    "msg_type": "markdown",
-    "mentioned_list": ["user1", "user2"]
+    "token": "your_key"
 })
 
 notify = useNotify()

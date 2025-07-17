@@ -55,14 +55,14 @@ notify.add(useNotifyChannel.Ding({
 
 ```python
 notify.add(useNotifyChannel.WeChat({
-    "webhook_url": "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your_key",  # 必需
+    "token": "your_key",  # 必需
     "mentioned_list": ["@all"],  # 可选，@成员列表
     "mentioned_mobile_list": ["13800138000"]  # 可选，@手机号列表
 }))
 ```
 
 **配置参数：**
-- `webhook_url` (必需): 企业微信机器人的 Webhook URL
+- `token` (必需): 企业微信机器人的 Webhook Token
 - `mentioned_list` (可选): @成员列表，使用 "@all" 可@所有人
 - `mentioned_mobile_list` (可选): @手机号列表
 

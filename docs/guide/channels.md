@@ -70,26 +70,22 @@ SMTP 邮件通知。
 
 ```python
 notify.add(useNotifyChannel.Email({
-    "smtp_server": "smtp.gmail.com",  # 必需
-    "smtp_port": 587,  # 必需
+    "server": "smtp.gmail.com",  # 必需
+    "port": 587,  # 必需
     "username": "your_email@gmail.com",  # 必需
     "password": "your_password",  # 必需
     "to_emails": ["recipient@example.com"],  # 必需
     "from_email": "your_email@gmail.com",  # 可选，默认使用username
-    "use_tls": True,  # 可选，是否使用TLS
-    "use_ssl": False  # 可选，是否使用SSL
 }))
 ```
 
 **配置参数：**
-- `smtp_server` (必需): SMTP 服务器地址
-- `smtp_port` (必需): SMTP 服务器端口
+- `server` (必需): SMTP 服务器地址
+- `port` (必需): SMTP 服务器端口
 - `username` (必需): 邮箱用户名
 - `password` (必需): 邮箱密码或应用密码
 - `to_emails` (必需): 收件人邮箱列表
 - `from_email` (可选): 发件人邮箱，默认使用 username
-- `use_tls` (可选): 是否使用 TLS 加密，默认 True
-- `use_ssl` (可选): 是否使用 SSL 加密，默认 False
 
 ### Pushover
 
@@ -156,8 +152,8 @@ notify.add(
     useNotifyChannel.Bark({"token": "bark_token"}),
     useNotifyChannel.Ding({"token": "ding_token"}),
     useNotifyChannel.Email({
-        "smtp_server": "smtp.gmail.com",
-        "smtp_port": 587,
+        "server": "smtp.gmail.com",
+        "port": 587,
         "username": "user@gmail.com",
         "password": "password",
         "to_emails": ["recipient@example.com"]
@@ -183,8 +179,8 @@ alert_notify = useNotify()
 alert_notify.add(
     useNotifyChannel.Ding({"token": "ding_token", "at_all": True}),
     useNotifyChannel.Email({
-        "smtp_server": "smtp.company.com",
-        "smtp_port": 587,
+        "server": "smtp.company.com",
+        "port": 587,
         "username": "alerts@company.com",
         "password": "password",
         "to_emails": ["admin@company.com", "ops@company.com"]
@@ -281,8 +277,8 @@ notify.add(useNotifyChannel.Ding({
 }))
 
 notify.add(useNotifyChannel.Email({
-    "smtp_server": os.getenv("SMTP_SERVER", "smtp.gmail.com"),
-    "smtp_port": int(os.getenv("SMTP_PORT", "587")),
+    "server": os.getenv("server", "smtp.gmail.com"),
+    "port": int(os.getenv("port", "587")),
     "username": os.getenv("EMAIL_USERNAME"),
     "password": os.getenv("EMAIL_PASSWORD"),
     "to_emails": os.getenv("EMAIL_RECIPIENTS", "").split(",")
@@ -336,8 +332,8 @@ for channel_config in config["channels"]:
     {
       "type": "email",
       "params": {
-        "smtp_server": "smtp.gmail.com",
-        "smtp_port": 587,
+        "server": "smtp.gmail.com",
+        "port": 587,
         "username": "your_email@gmail.com",
         "password": "your_password",
         "to_emails": ["recipient@example.com"]
@@ -364,8 +360,8 @@ class ReliableNotify:
             useNotifyChannel.Bark({"token": os.getenv("BARK_TOKEN")}),
             useNotifyChannel.Ding({"token": os.getenv("DING_TOKEN")}),
             useNotifyChannel.Email({
-                "smtp_server": "smtp.gmail.com",
-                "smtp_port": 587,
+                "server": "smtp.gmail.com",
+                "port": 587,
                 "username": os.getenv("EMAIL_USERNAME"),
                 "password": os.getenv("EMAIL_PASSWORD"),
                 "to_emails": [os.getenv("EMAIL_RECIPIENT")]
@@ -400,8 +396,8 @@ def test_notification_channels():
         ("Bark", useNotifyChannel.Bark({"token": os.getenv("BARK_TOKEN")})),
         ("钉钉", useNotifyChannel.Ding({"token": os.getenv("DING_TOKEN")})),
         ("邮件", useNotifyChannel.Email({
-            "smtp_server": "smtp.gmail.com",
-            "smtp_port": 587,
+            "server": "smtp.gmail.com",
+            "port": 587,
             "username": os.getenv("EMAIL_USERNAME"),
             "password": os.getenv("EMAIL_PASSWORD"),
             "to_emails": [os.getenv("EMAIL_RECIPIENT")]

@@ -4,14 +4,14 @@ version = "0.3.44"
 description = "一个简单可扩展的异步消息通知库"
 authors = ["miclon <jcnd@163.com>"]
 readme = "README.md"
-packages = [
-    { include = 'use_notify', from = 'src' }
-]
+packages = [{ include = 'use_notify', from = 'src' }]
 
 [tool.poetry.dependencies]
 python = "^3.8"
 usepy = "^0.4.0"
-httpx = "*"
+httpx = ">=0.27.0,<1.0.0"
+httpcore = { extras = ["asyncio"], version = "^1.0.9" }
+exceptiongroup = ">=1.3.0,<2.0.0"
 
 
 [tool.poetry.group.test.dependencies]

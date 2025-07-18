@@ -1,12 +1,10 @@
 [tool.poetry]
 name = "use-notify"
-version = "0.3.43"
+version = "0.3.44"
 description = "一个简单可扩展的异步消息通知库"
 authors = ["miclon <jcnd@163.com>"]
 readme = "README.md"
-packages = [
-    { include = 'use_notify', from = 'src' }
-]
+packages = [{ include = 'use_notify', from = 'src' }]
 
 [tool.poetry.dependencies]
 python = "^3.8"

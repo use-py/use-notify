@@ -8,9 +8,9 @@ class BaseChannel(metaclass=ABCMeta):
         self.config = AdDict(config)
 
     @abstractmethod
-    def send(self, message):
+    def send(self, content, title=None):
         raise NotImplementedError
 
     @abstractmethod
-    async def send_async(self, message):
+    async def send_async(self, content, title=None):
         raise NotImplementedError

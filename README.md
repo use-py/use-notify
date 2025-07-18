@@ -82,13 +82,15 @@ async def async_task():
 
 #### 支持的消息通知渠道列表
 
-- Wechat
-- Ding
+- Wechat(企微)
+- Ding(钉钉)
 - Bark
 - Email
 - Chanify
 - Pushdeer
 - Pushover
+- FeiShu(飞书)
+- Ntfy
 
 #### 自己开发消息通知
 

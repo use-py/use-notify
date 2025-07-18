@@ -157,6 +157,48 @@ notify.add(useNotifyChannel.Feishu({
 - `at_all` (可选): 是否@所有人，默认 False
 - `at_user_ids` (可选): @指定用户ID列表
 
+### Ntfy
+
+Ntfy 是一个简单、轻量级的推送通知服务。
+
+```python
+from use_notify import useNotify, useNotifyChannel
+
+notify = useNotify()
+notify.add(useNotifyChannel.Ntfy({
+    "topic": "my-notifications",  # 必需
+    "base_url": "https://ntfy.sh",  # 可选，默认官方服务器
+    "priority": 3,  # 可选，优先级 (1-5)
+    "tags": ["warning", "skull"],  # 可选，通知标签
+    "click": "https://example.com",  # 可选，点击跳转链接
+    "attach": "https://example.com/image.jpg"  # 可选，附件链接
+}))
+```
+
+**配置参数：**
+- `topic` (必需): Ntfy 通知主题，用于标识通知目标
+- `base_url` (可选): Ntfy 服务器地址，默认为官方服务器 https://ntfy.sh
+- `priority` (可选): 通知优先级，范围 1-5（1 最低，5 最高）
+- `tags` (可选): 通知标签列表，用于显示图标
+- `click` (可选): 点击通知后跳转的 URL
+- `attach` (可选): 附件链接，可以是图片或其他文件
+- `actions` (可选): 交互操作按钮列表，例如：
+  ```python
+  "actions": [
+      {
+          "action": "view",
+          "label": "打开网站",
+          "url": "https://ntfy.sh"
+      },
+      {
+          "action": "http",
+          "label": "重启服务",
+          "url": "https://api.example.com/restart",
+          "method": "POST"
+      }
+  ]
+  ```
+
 ## 多渠道配置
 
 ### 添加多个渠道

@@ -12,6 +12,8 @@ use-notify 是一个用于 Python 的消息通知库，提供了简单而强大�
   - Pushdeer
   - 邮件（Email）
   - Chanify
+  - 飞书（Feishu）
+  - Ntfy
 
 - **装饰器模式**
   - 使用 `@notify` 装饰器自动化通知
@@ -26,11 +28,11 @@ use-notify 是一个用于 Python 的消息通知库，提供了简单而强大�
   - 高度可扩展的架构
   - 错误处理和重试机制
 
-## 系统要求
+## 依赖要求
 
 - Python 3.8+
-- aiohttp
-- pydantic
+- httpx
+- usepy
 
 ## 安装
 

@@ -122,13 +122,15 @@ result = await async_file_processing("/path/to/file.txt")
 - `{function_name}` - 函数名称
 - `{args}` - 函数参数（当 `include_args=True` 时）
 - `{result}` - 函数返回值（当 `include_result=True` 时）
-- `{duration}` - 函数执行时间（秒）
+- `{execution_time}` - 函数执行时间（秒）
 - `{error}` - 错误信息（失败通知时）
-- `{timestamp}` - 执行时间戳
+- `{start_time}` - 函数开始执行时间
+- `{end_time}` - 函数结束执行时间
+- `{current_time}` - 发送通知时的当前时间
 
 ```python
 @notify(
-    success_template="🎉 函数 {function_name} 在 {timestamp} 执行成功\n" +
+    success_template="🎉 函数 {function_name} 在 {current_time} 执行成功\n" +
                     "参数: {args}\n" +
                     "结果: {result}\n" +
                     "耗时: {execution_time:.3f}秒",

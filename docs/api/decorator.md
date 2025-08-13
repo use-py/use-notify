@@ -62,7 +62,7 @@ def simple_task():
     return "完成"
 
 # 模板标题
-@notify(title="函数 {func_name} 执行完成")
+@notify(title="函数 {function_name} 执行完成")
 def template_task():
     return "结果"
 
@@ -166,7 +166,7 @@ calculate_sum(7, 8)  # 通知中会显示结果: 15
 
 ```python
 @notify(
-    success_template="✅ 函数 {func_name} 成功执行\n参数: {args}\n结果: {result}\n耗时: {execution_time:.2f}秒"
+    success_template="✅ 函数 {function_name} 成功执行\n参数: {args}\n结果: {result}\n耗时: {execution_time:.2f}秒"
 )
 def detailed_task(task_name):
     time.sleep(1)  # 模拟耗时操作
@@ -174,7 +174,7 @@ def detailed_task(task_name):
 
 # 自定义成功模板
 @notify(
-    success_template="🎉 {func_name} 执行成功！\n📊 处理了 {result} 条记录"
+    success_template="🎉 {function_name} 执行成功！\n📊 处理了 {result} 条记录"
 )
 def process_records():
     # 模拟处理记录
@@ -192,7 +192,7 @@ def process_records():
 
 ```python
 @notify(
-    failure_template="❌ 函数 {func_name} 执行失败\n错误: {error}\n参数: {args}\n耗时: {execution_time:.2f}秒"
+    failure_template="❌ 函数 {function_name} 执行失败\n错误: {error}\n参数: {args}\n耗时: {execution_time:.2f}秒"
 )
 def risky_task(operation):
     if operation == "dangerous":
@@ -201,7 +201,7 @@ def risky_task(operation):
 
 # 包含错误详情的模板
 @notify(
-    failure_template="🚨 严重错误\n函数: {func_name}\n错误类型: {error_type}\n错误信息: {error}\n发生时间: {timestamp}"
+    failure_template="🚨 严重错误\n函数: {function_name}\n错误类型: {error_type}\n错误信息: {error}\n发生时间: {current_time}"
 )
 def critical_operation():
     # 可能失败的关键操作
@@ -256,11 +256,13 @@ asyncio.run(main())
 
 | 变量 | 类型 | 说明 | 示例 |
 |------|------|------|------|
-| `func_name` | str | 函数名称 | `"process_data"` |
+| `function_name` | str | 函数名称 | `"process_data"` |
 | `args` | tuple | 位置参数 | `(1, 2, 3)` |
 | `kwargs` | dict | 关键字参数 | `{"format": "json"}` |
-| `duration` | float | 执行耗时（秒） | `1.23` |
-| `timestamp` | str | 执行时间戳 | `"2024-01-01 12:00:00"` |
+| `execution_time` | float | 执行耗时（秒） | `1.23` |
+| `start_time` | str | 函数开始执行时间 | `"2024-01-01 12:00:00"` |
+| `end_time` | str | 函数结束执行时间 | `"2024-01-01 12:00:01"` |
+| `current_time` | str | 发送通知时的当前时间 | `"2024-01-01 12:00:01"` |
 
 ### 成功时可用变量
 
@@ -281,22 +283,26 @@ asyncio.run(main())
 
 ```python
 @notify(
-    title="{func_name} 开始执行",
+    title="{function_name} 开始执行",
     success_template="""
 ✅ 执行成功
-📋 函数: {func_name}
+📋 函数: {function_name}
 ⏱️ 耗时: {execution_time:.2f}秒
 📥 参数: {args}
 📤 结果: {result}
-🕐 时间: {timestamp}
+🕐 开始时间: {start_time}
+🕐 结束时间: {end_time}
+🕐 通知时间: {current_time}
 """,
     failure_template="""
 ❌ 执行失败
-📋 函数: {func_name}
+📋 函数: {function_name}
 ⏱️ 耗时: {execution_time:.2f}秒
 📥 参数: {args}
-🚨 错误: {error_type}: {error}
-🕐 时间: {timestamp}
+🚨 错误: {error_message}
+🕐 开始时间: {start_time}
+🕐 结束时间: {end_time}
+🕐 通知时间: {current_time}
 """,
     include_args=True,
     include_result=True
@@ -315,8 +321,63 @@ def comprehensive_task(task_id, config=None):
         "processed_items": random.randint(10, 100)
     }
 
+# 时间变量对比示例
+@notify(
+    success_template="""
+⏰ 时间信息对比:
+🟢 开始时间: {start_time}
+🔴 结束时间: {end_time}
+🔵 通知时间: {current_time}
+💡 说明: current_time 通常会比 end_time 稍晚，因为它是在格式化通知消息时获取的
+"""
+)
+def time_demo_task():
+    """演示时间变量的任务"""
+    time.sleep(1)
+    return "任务完成"
+
 # 调用示例
 comprehensive_task(123, config={"mode": "fast"})
+```
+
+### 时间变量详解
+
+在通知模板中，有三个与时间相关的变量，它们的含义和使用场景略有不同：
+
+| 变量 | 获取时机 | 说明 | 使用场景 |
+|------|----------|------|----------|
+| `start_time` | 函数开始执行时 | 记录函数开始执行的准确时间 | 用于显示任务开始时间，计算总耗时 |
+| `end_time` | 函数执行完成时 | 记录函数执行完成的准确时间 | 用于显示任务结束时间，计算总耗时 |
+| `current_time` | 格式化通知消息时 | 记录发送通知时的当前时间 | 用于显示通知发送时间，可能略晚于end_time |
+
+#### 时间差异说明
+
+- `start_time` 和 `end_time` 是函数执行过程中记录的时间戳
+- `current_time` 是在格式化通知消息时实时获取的时间
+- 通常 `current_time` 会比 `end_time` 稍晚几毫秒，因为中间还有消息格式化的处理时间
+- 如果通知渠道有延迟（如网络请求），`current_time` 仍然是格式化时的时间，不是实际发送成功的时间
+
+#### 使用建议
+
+```python
+# 显示任务执行时间范围
+@notify(
+    success_template="任务执行时间: {start_time} - {end_time}"
+)
+
+# 显示通知发送时间
+@notify(
+    success_template="通知发送时间: {current_time}"
+)
+
+# 完整的时间信息
+@notify(
+    success_template="""
+📅 执行时间: {start_time} - {end_time}
+⏱️ 执行耗时: {execution_time:.2f}秒
+📤 通知时间: {current_time}
+"""
+)
 ```
 
 ## 使用示例
@@ -366,7 +427,7 @@ monitor_system()
 import asyncio
 from use_notify import notify
 
-@notify(title="异步任务: {func_name}")
+@notify(title="异步任务: {function_name}")
 async def async_data_fetch(url):
     """异步获取数据"""
     # 模拟异步HTTP请求
@@ -429,9 +490,9 @@ class ConditionalNotifyDecorator:
         """只有当执行时间超过阈值时才通知"""
         def decorator(func):
             @notify(
-                title="长时间运行任务: {func_name}",
-                success_template="⏰ 任务完成\n耗时: {execution_time:.2f}秒 (超过 {min_duration}秒)"
-            )
+            title="长时间运行任务: {function_name}",
+            success_template="⏰ 任务完成\n耗时: {execution_time:.2f}秒 (超过 {min_duration}秒)"
+        )
             def wrapper(*args, **kwargs):
                 start_time = time.time()
                 result = func(*args, **kwargs)
@@ -552,7 +613,7 @@ def timing(func):
 
 # 装饰器链：通知 -> 重试 -> 计时
 @notify(
-    title="重要任务: {func_name}",
+    title="重要任务: {function_name}",
     success_template="✅ 任务成功 (尝试了 {retry_count} 次)",
     failure_template="❌ 任务最终失败 (尝试了 {max_attempts} 次)"
 )
@@ -664,7 +725,7 @@ def some_function():
 # ✅ 好的做法：敏感操作包含参数
 @notify(
     include_args=True,
-    title="安全操作: {func_name}"
+    title="安全操作: {function_name}"
 )
 def security_operation(user_id, action):
     pass
@@ -753,7 +814,7 @@ if os.getenv("DEBUG") == "true":
     @notify(
         include_args=True,
         include_result=True,
-        success_template="🐛 调试信息\n函数: {func_name}\n参数: {args}\n结果: {result}\n耗时: {execution_time:.3f}秒"
+        success_template="🐛 调试信息\n函数: {function_name}\n参数: {args}\n结果: {result}\n耗时: {execution_time:.3f}秒"
     )
     def debug_function(param1, param2="default"):
         return f"处理 {param1} 和 {param2}"

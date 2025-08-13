@@ -39,11 +39,13 @@ class Ding(BaseChannel):
     def send(self, content, title=None):
         api_body = self.build_api_body(content, title)
         with httpx.Client() as client:
-            client.post(self.api_url, json=api_body, headers=self.headers)
+            response = client.post(self.api_url, json=api_body, headers=self.headers)
+            response.raise_for_status()
         logger.debug("`钉钉` send successfully")
 
     async def send_async(self, content, title=None):
         api_body = self.build_api_body(content, title)
         async with httpx.AsyncClient() as client:
-            await client.post(self.api_url, json=api_body, headers=self.headers)
+            response = await client.post(self.api_url, json=api_body, headers=self.headers)
+            response.raise_for_status()
         logger.debug("`钉钉` send successfully")

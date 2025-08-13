@@ -4,6 +4,7 @@
 """
 
 import json
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 from .context import ExecutionContext
@@ -53,11 +54,13 @@ class MessageFormatter:
     
     def _get_format_variables(self, context: ExecutionContext) -> Dict[str, Any]:
         """获取格式化变量"""
+        current_time = datetime.now()
         format_vars = {
             "function_name": context.function_name,
             "execution_time": context.execution_time or 0,
             "error_message": context.error_message,
             "start_time": context.start_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "current_time": current_time.strftime("%Y-%m-%d %H:%M:%S"),
         }
         
         if context.end_time:

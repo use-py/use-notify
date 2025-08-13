@@ -179,6 +179,45 @@ class TestMessageFormatter:
         result = formatter._safe_serialize(long_string, max_length=100)
         assert len(result) <= 103  # 100 + "..."
         assert result.endswith("...")
+    
+    def test_current_time_variable(self):
+        """测试当前时间变量"""
+        from datetime import datetime
+        import re
+        
+        # 使用包含current_time变量的自定义模板
+        success_template = "函数 {function_name} 在 {current_time} 执行成功"
+        error_template = "函数 {function_name} 在 {current_time} 执行失败: {error_message}"
+        
+        formatter = MessageFormatter(
+            success_template=success_template,
+            error_template=error_template
+        )
+        
+        # 测试成功消息
+        context = ExecutionContext("test_func", datetime.now())
+        context.mark_success("result")
+        
+        message = formatter.format_success_message(context)
+        
+        # 验证消息包含当前时间
+        assert "test_func" in message["content"]
+        assert "执行成功" in message["content"]
+        # 验证时间格式 (YYYY-MM-DD HH:MM:SS)
+        time_pattern = r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
+        assert re.search(time_pattern, message["content"]) is not None
+        
+        # 测试错误消息
+        context_error = ExecutionContext("test_func", datetime.now())
+        context_error.mark_error(ValueError("test error"))
+        
+        error_message = formatter.format_error_message(context_error)
+        
+        # 验证错误消息包含当前时间
+        assert "test_func" in error_message["content"]
+        assert "执行失败" in error_message["content"]
+        assert "test error" in error_message["content"]
+        assert re.search(time_pattern, error_message["content"]) is not None
 
 
 class TestNotificationSender:

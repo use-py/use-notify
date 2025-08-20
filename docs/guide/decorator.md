@@ -62,7 +62,7 @@ def silent_task():
 ```python
 @notify(
     success_template="✅ 任务 {function_name} 执行成功\n结果: {result}\n耗时: {execution_time:.2f}秒",
-    error_template="❌ 任务 {function_name} 执行失败\n错误: {error}\n耗时: {execution_time:.2f}秒"
+    error_template="❌ 任务 {function_name} 执行失败\n错误: {error_message}\n耗时: {execution_time:.2f}秒"
 )
 def custom_template_task():
     return "自定义模板任务完成"
@@ -123,7 +123,7 @@ result = await async_file_processing("/path/to/file.txt")
 - `{args}` - 函数参数（当 `include_args=True` 时）
 - `{result}` - 函数返回值（当 `include_result=True` 时）
 - `{execution_time}` - 函数执行时间（秒）
-- `{error}` - 错误信息（失败通知时）
+- `{error_message}` - 错误信息（失败通知时）
 - `{start_time}` - 函数开始执行时间
 - `{end_time}` - 函数结束执行时间
 - `{current_time}` - 发送通知时的当前时间
@@ -169,7 +169,7 @@ def critical_system_check():
 @notify(
     title="数据同步任务",
     success_template="✅ 数据同步完成\n处理记录数: {result}\n耗时: {execution_time:.2f}秒",
-    error_template="❌ 数据同步失败\n错误: {error}",
+    error_template="❌ 数据同步失败\n错误: {error_message}",
     include_result=True
 )
 def sync_database():
@@ -186,7 +186,7 @@ def sync_database():
     title="文件备份",
     notify_on_error=True,
     notify_on_success=False,  # 只在失败时通知
-    error_template="🚨 备份失败\n文件: {args}\n错误: {error}",
+    error_template="🚨 备份失败\n文件: {args}\n错误: {error_message}",
     include_args=True
 )
 def backup_file(file_path, backup_path):
@@ -205,7 +205,7 @@ def backup_file(file_path, backup_path):
 @notify(
     title="API 调用监控",
     success_template="📡 API 调用成功\nURL: {args[0]}\n响应时间: {execution_time:.3f}秒",
-    error_template="🔥 API 调用失败\nURL: {args[0]}\n错误: {error}",
+    error_template="🔥 API 调用失败\nURL: {args[0]}\n错误: {error_message}",
     include_args=True,
     timeout=10
 )
@@ -253,7 +253,7 @@ def some_task():
 # 包含关键信息
 @notify(
     success_template="✅ {function_name} 完成\n处理时间: {execution_time:.2f}秒",
-    error_template="❌ {function_name} 失败\n错误: {error}\n持续时间: {execution_time:.2f}秒"
+    error_template="❌ {function_name} 失败\n错误: {error_message}\n持续时间: {execution_time:.2f}秒"
 )
 def important_task():
     pass

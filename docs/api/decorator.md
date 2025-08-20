@@ -182,7 +182,7 @@ def process_records():
     return processed
 ```
 
-### `failure_template`
+### `error_template`
 
 失败时的通知内容模板。
 
@@ -192,7 +192,7 @@ def process_records():
 
 ```python
 @notify(
-    failure_template="❌ 函数 {function_name} 执行失败\n错误: {error}\n参数: {args}\n耗时: {execution_time:.2f}秒"
+    error_template="❌ 函数 {function_name} 执行失败\n错误: {error_message}\n参数: {args}\n耗时: {execution_time:.2f}秒"
 )
 def risky_task(operation):
     if operation == "dangerous":
@@ -201,7 +201,7 @@ def risky_task(operation):
 
 # 包含错误详情的模板
 @notify(
-    failure_template="🚨 严重错误\n函数: {function_name}\n错误类型: {error_type}\n错误信息: {error}\n发生时间: {current_time}"
+    error_template="🚨 严重错误\n函数: {function_name}\n错误类型: {error_type}\n错误信息: {error_message}\n发生时间: {current_time}"
 )
 def critical_operation():
     # 可能失败的关键操作
@@ -250,7 +250,7 @@ asyncio.run(main())
 
 ## 模板变量
 
-装饰器支持在 `title`、`success_template` 和 `failure_template` 中使用以下模板变量：
+装饰器支持在 `title`、`success_template` 和 `error_template` 中使用以下模板变量：
 
 ### 基础变量
 
@@ -294,7 +294,7 @@ asyncio.run(main())
 🕐 结束时间: {end_time}
 🕐 通知时间: {current_time}
 """,
-    failure_template="""
+    error_template="""
 ❌ 执行失败
 📋 函数: {function_name}
 ⏱️ 耗时: {execution_time:.2f}秒
@@ -437,7 +437,7 @@ async def async_data_fetch(url):
 @notify(
     timeout=5.0,
     success_template="✅ 异步任务完成\n结果: {result}\n耗时: {execution_time:.2f}秒",
-    failure_template="❌ 异步任务失败\n错误: {error}\n耗时: {execution_time:.2f}秒"
+    error_template="❌ 异步任务失败\n错误: {error_message}\n耗时: {execution_time:.2f}秒"
 )
 async def async_task_with_timeout():
     """带超时的异步任务"""
@@ -615,7 +615,7 @@ def timing(func):
 @notify(
     title="重要任务: {function_name}",
     success_template="✅ 任务成功 (尝试了 {retry_count} 次)",
-    failure_template="❌ 任务最终失败 (尝试了 {max_attempts} 次)"
+    error_template="❌ 任务最终失败 (尝试了 {max_attempts} 次)"
 )
 @retry(max_attempts=3, delay=2)
 @timing
@@ -752,7 +752,7 @@ from use_notify.exceptions import NotifySendError
 
 @notify(
     on_failure=True,
-    failure_template="🚨 关键任务失败: {error}"
+    error_template="🚨 关键任务失败: {error_message}"
 )
 def critical_task_with_fallback():
     """关键任务，带降级处理"""

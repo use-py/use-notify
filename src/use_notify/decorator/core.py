@@ -8,7 +8,7 @@ import functools
 import inspect
 import logging
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Callable, Optional, Sequence, Type
 
 from ..notification import Notify
 from .context import ExecutionContext
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 # 全局默认通知实例
 _default_notify_instance: Optional[Notify] = None
+RetriableExceptionsInput = Optional[Sequence[Type[BaseException]]]
 
 
 def set_default_notify_instance(notify_instance: Notify) -> None:
@@ -76,12 +77,17 @@ class NotifyDecorator:
         notify_on_error: bool = True,
         include_args: bool = False,
         include_result: bool = False,
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
+        max_retries: Optional[int] = None,
+        retry_delay: Optional[float] = None,
+        retry_backoff: Optional[float] = None,
+        retriable_exceptions: RetriableExceptionsInput = None,
     ):
         # 验证配置
         self._validate_config(
             notify_instance, title, success_template, error_template,
-            notify_on_success, notify_on_error, include_args, include_result, timeout
+            notify_on_success, notify_on_error, include_args, include_result, timeout,
+            max_retries, retry_delay, retry_backoff, retriable_exceptions,
         )
         
         # 如果没有提供 notify_instance，尝试使用全局默认实例
@@ -92,6 +98,14 @@ class NotifyDecorator:
                 logger.warning("未提供 notify_instance 且未设置全局默认实例，创建了一个空的 Notify 实例。请确保添加通知渠道或设置默认实例。")
             else:
                 logger.debug("使用全局默认通知实例")
+
+        notify_instance = self._apply_retry_overrides(
+            notify_instance=notify_instance,
+            max_retries=max_retries,
+            retry_delay=retry_delay,
+            retry_backoff=retry_backoff,
+            retriable_exceptions=retriable_exceptions,
+        )
         
         self.notify_instance = notify_instance
         self.title = title
@@ -242,7 +256,8 @@ class NotifyDecorator:
     def _validate_config(self, *args) -> None:
         """验证配置参数"""
         notify_instance, title, success_template, error_template, \
-        notify_on_success, notify_on_error, include_args, include_result, timeout = args
+        notify_on_success, notify_on_error, include_args, include_result, timeout, \
+        max_retries, retry_delay, retry_backoff, retriable_exceptions = args
         
         if notify_instance is not None and not isinstance(notify_instance, Notify):
             raise NotifyConfigError("notify_instance 必须是 Notify 类的实例")
@@ -270,9 +285,67 @@ class NotifyDecorator:
         
         if timeout is not None and (not isinstance(timeout, (int, float)) or timeout <= 0):
             raise NotifyConfigError("timeout 必须是正数")
-        
+
+        if max_retries is not None and (not isinstance(max_retries, int) or max_retries < 0):
+            raise NotifyConfigError("max_retries 必须是大于等于 0 的整数")
+
+        if retry_delay is not None and (
+            not isinstance(retry_delay, (int, float)) or retry_delay < 0
+        ):
+            raise NotifyConfigError("retry_delay 必须是大于等于 0 的数字")
+
+        if retry_backoff is not None and (
+            not isinstance(retry_backoff, (int, float)) or retry_backoff <= 0
+        ):
+            raise NotifyConfigError("retry_backoff 必须是正数")
+
+        if retriable_exceptions is not None:
+            if not isinstance(retriable_exceptions, (list, tuple)):
+                raise NotifyConfigError("retriable_exceptions 必须是异常类型序列")
+            invalid_types = [
+                exception_type
+                for exception_type in retriable_exceptions
+                if not isinstance(exception_type, type)
+                or not issubclass(exception_type, BaseException)
+            ]
+            if invalid_types:
+                raise NotifyConfigError("retriable_exceptions 必须只包含异常类型")
+
         if not notify_on_success and not notify_on_error:
             raise NotifyConfigError("notify_on_success 和 notify_on_error 不能同时为 False")
+
+    @staticmethod
+    def _apply_retry_overrides(
+        notify_instance: Notify,
+        max_retries: Optional[int],
+        retry_delay: Optional[float],
+        retry_backoff: Optional[float],
+        retriable_exceptions: RetriableExceptionsInput,
+    ) -> Notify:
+        if (
+            max_retries is None
+            and retry_delay is None
+            and retry_backoff is None
+            and retriable_exceptions is None
+        ):
+            return notify_instance
+
+        retry_config = notify_instance.retry_config
+        return Notify(
+            channels=list(notify_instance.channels),
+            max_retries=retry_config.max_retries if max_retries is None else max_retries,
+            retry_delay=retry_config.retry_delay if retry_delay is None else retry_delay,
+            retry_backoff=(
+                retry_config.retry_backoff
+                if retry_backoff is None
+                else retry_backoff
+            ),
+            retriable_exceptions=(
+                retry_config.retriable_exceptions
+                if retriable_exceptions is None
+                else tuple(retriable_exceptions)
+            ),
+        )
 
 
 def notify(
@@ -284,7 +357,11 @@ def notify(
     notify_on_error: bool = True,
     include_args: bool = False,
     include_result: bool = False,
-    timeout: Optional[float] = None
+    timeout: Optional[float] = None,
+    max_retries: Optional[int] = None,
+    retry_delay: Optional[float] = None,
+    retry_backoff: Optional[float] = None,
+    retriable_exceptions: RetriableExceptionsInput = None,
 ) -> Callable:
     """
     创建通知装饰器的工厂函数
@@ -299,6 +376,10 @@ def notify(
         include_args: 是否在消息中包含函数参数
         include_result: 是否在消息中包含函数返回值
         timeout: 通知发送超时时间（秒）
+        max_retries: 通知发送失败后的最大重试次数
+        retry_delay: 每次重试前的延迟（秒）
+        retry_backoff: 重试延迟的退避倍数
+        retriable_exceptions: 额外视为可重试的异常类型序列
     
     Returns:
         装饰器函数
@@ -325,5 +406,9 @@ def notify(
         notify_on_error=notify_on_error,
         include_args=include_args,
         include_result=include_result,
-        timeout=timeout
+        timeout=timeout,
+        max_retries=max_retries,
+        retry_delay=retry_delay,
+        retry_backoff=retry_backoff,
+        retriable_exceptions=retriable_exceptions,
     )

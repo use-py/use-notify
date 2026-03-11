@@ -132,7 +132,6 @@ dmypy.json
 
 # pycharm
 .idea
-poetry.lock
 *.DS_Store
 
 # docs/node_modules

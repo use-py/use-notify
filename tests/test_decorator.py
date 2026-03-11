@@ -37,6 +37,27 @@ class MockChannel(BaseChannel):
         self.sent_messages.append({"title": title, "content": content, "kwargs": kwargs})
 
 
+class FlakyMockChannel(MockChannel):
+    def __init__(self, failures_before_success, error_factory=RuntimeError, config=None):
+        super().__init__(config=config)
+        self.failures_before_success = failures_before_success
+        self.error_factory = error_factory
+        self.sync_attempts = 0
+        self.async_attempts = 0
+
+    def send(self, title=None, content=None, **kwargs):
+        self.sync_attempts += 1
+        if self.sync_attempts <= self.failures_before_success:
+            raise self.error_factory("temporary send failure")
+        super().send(title=title, content=content, **kwargs)
+
+    async def send_async(self, title=None, content=None, **kwargs):
+        self.async_attempts += 1
+        if self.async_attempts <= self.failures_before_success:
+            raise self.error_factory("temporary send failure")
+        await super().send_async(title=title, content=content, **kwargs)
+
+
 class TestExecutionContext:
     """测试执行上下文"""
     
@@ -265,6 +286,49 @@ class TestNotificationSender:
         assert message["title"] == "Test Title"
         assert message["content"] == "Test Content"
 
+    def test_send_notification_retries_transient_failure(self):
+        """测试同步发送通知时重试瞬时错误"""
+        flaky_channel = FlakyMockChannel(
+            failures_before_success=1,
+            error_factory=TimeoutError,
+        )
+        notify_instance = useNotify([flaky_channel], max_retries=1)
+        sender = NotificationSender(notify_instance)
+
+        sender.send_notification("Test Title", "Test Content")
+
+        assert flaky_channel.sync_attempts == 2
+        assert len(flaky_channel.sent_messages) == 1
+
+    @pytest.mark.asyncio
+    async def test_send_notification_async_retries_transient_failure(self):
+        """测试异步发送通知时重试瞬时错误"""
+        flaky_channel = FlakyMockChannel(
+            failures_before_success=1,
+            error_factory=TimeoutError,
+        )
+        notify_instance = useNotify([flaky_channel], max_retries=1)
+        sender = NotificationSender(notify_instance)
+
+        await sender.send_notification_async("Test Title", "Test Content")
+
+        assert flaky_channel.async_attempts == 2
+        assert len(flaky_channel.sent_messages) == 1
+
+    def test_send_notification_does_not_retry_non_retriable_failure(self):
+        """测试同步发送通知时不会重试非瞬时错误"""
+        flaky_channel = FlakyMockChannel(
+            failures_before_success=1,
+            error_factory=ValueError,
+        )
+        notify_instance = useNotify([flaky_channel], max_retries=2)
+        sender = NotificationSender(notify_instance)
+
+        sender.send_notification("Test Title", "Test Content")
+
+        assert flaky_channel.sync_attempts == 1
+        assert len(flaky_channel.sent_messages) == 0
+
 
 class TestNotifyDecorator:
     """测试通知装饰器"""
@@ -298,6 +362,14 @@ class TestNotifyDecorator:
         # 测试无效的 timeout
         with pytest.raises(NotifyConfigError):
             NotifyDecorator(timeout=-1)
+
+        # 测试无效的 max_retries
+        with pytest.raises(NotifyConfigError):
+            NotifyDecorator(max_retries=-1)
+
+        # 测试无效的 retriable_exceptions
+        with pytest.raises(NotifyConfigError):
+            NotifyDecorator(retriable_exceptions=["invalid"])
         
         # 测试两个通知都关闭
         with pytest.raises(NotifyConfigError):
@@ -347,6 +419,29 @@ class TestNotifyDecorator:
         assert "✅" in message["title"]
         assert "test_func" in message["content"]
         assert "执行成功" in message["content"]
+
+    def test_sync_function_uses_decorator_retry_without_mutating_notify_instance(self):
+        """测试装饰器级重试配置生效且不污染原实例"""
+        flaky_channel = FlakyMockChannel(
+            failures_before_success=1,
+            error_factory=TimeoutError,
+        )
+        notify_instance = useNotify([flaky_channel])
+        decorator = NotifyDecorator(
+            notify_instance=notify_instance,
+            max_retries=1,
+        )
+
+        @decorator
+        def test_func():
+            return "success"
+
+        result = test_func()
+
+        assert result == "success"
+        assert flaky_channel.sync_attempts == 2
+        assert len(flaky_channel.sent_messages) == 1
+        assert notify_instance.retry_config.max_retries == 0
     
     def test_sync_function_error(self):
         """测试同步函数错误执行"""
@@ -524,6 +619,24 @@ class TestNotifyFactory:
         assert len(mock_channel.sent_messages) == 1
         message = mock_channel.sent_messages[0]
         assert "success" in message["content"]
+
+    def test_factory_with_retry_overrides(self):
+        """测试工厂函数中的重试配置覆盖"""
+        flaky_channel = FlakyMockChannel(
+            failures_before_success=1,
+            error_factory=TimeoutError,
+        )
+        notify_instance = useNotify([flaky_channel])
+
+        @notify(notify_instance=notify_instance, max_retries=1)
+        def test_func():
+            return "success"
+
+        result = test_func()
+
+        assert result == "success"
+        assert flaky_channel.sync_attempts == 2
+        assert notify_instance.retry_config.max_retries == 0
     
     def test_factory_without_notify_instance(self):
         """测试不提供 notify_instance 的工厂函数"""

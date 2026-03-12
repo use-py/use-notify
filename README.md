@@ -120,6 +120,11 @@ class Custom(useNotifyChannel.BaseChannel):
 
 - [装饰器完整使用指南](docs/guide/decorator.md) - 详细的装饰器功能说明和最佳实践
 
+#### Agent Skill
+
+- Installable skill package: `SKILL.md` + `skill-references/`
+- Purpose: help AI coding agents generate correct `use-notify` integration snippets, choose channels, and troubleshoot retry/error behavior
+
 #### 特性
 
 - 🚀 **简单易用**: 几行代码即可集成多种通知渠道

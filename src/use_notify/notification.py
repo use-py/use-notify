@@ -4,6 +4,7 @@ import logging
 import smtplib
 import time
 from dataclasses import dataclass
+from threading import RLock
 from typing import List, Optional, Tuple, Type, TypeVar
 
 import httpx
@@ -72,7 +73,8 @@ class Publisher:
     ):
         if channels is None:
             channels = []
-        self.channels = channels
+        self._state_lock = RLock()
+        self.channels = tuple(channels)
         self.retry_config = RetryConfig(
             max_retries=max_retries,
             retry_delay=retry_delay,
@@ -87,8 +89,10 @@ class Publisher:
         Args:
             *channels: Variable number of BaseChannel objects.
         """
-        for channel in channels:
-            self.channels.append(channel)
+        if not channels:
+            return
+        with self._state_lock:
+            self.channels = self.channels + tuple(channels)
 
     def configure_retry(
         self: PublisherT,
@@ -100,22 +104,25 @@ class Publisher:
         """
         Update retry policy for subsequent sends.
         """
-        self.retry_config = RetryConfig(
+        retry_config = RetryConfig(
             max_retries=max_retries,
             retry_delay=retry_delay,
             retry_backoff=retry_backoff,
             retriable_exceptions=retriable_exceptions,
         )
+        with self._state_lock:
+            self.retry_config = retry_config
         return self
 
     def publish(self, *args, **kwargs):
         """
         Publish a notification to all channels.
         """
+        channels, retry_config = self._snapshot_state()
         failures = []
-        for channel in self.channels:
+        for channel in channels:
             try:
-                self._send_with_retry(channel, *args, **kwargs)
+                self._send_with_retry(channel, retry_config, *args, **kwargs)
             except Exception as error:
                 failures.append((self._channel_name(channel), error))
 
@@ -126,20 +133,28 @@ class Publisher:
         """
         Publish a notification asynchronously to all channels.
         """
-        tasks = [self._send_with_retry_async(channel, *args, **kwargs) for channel in self.channels]
+        channels, retry_config = self._snapshot_state()
+        tasks = [
+            self._send_with_retry_async(channel, retry_config, *args, **kwargs)
+            for channel in channels
+        ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         failures = []
-        for channel, result in zip(self.channels, results):
+        for channel, result in zip(channels, results):
             if isinstance(result, Exception):
                 failures.append((self._channel_name(channel), result))
 
         if failures:
             self._raise_publish_error(failures)
 
-    def _send_with_retry(self, channel, *args, **kwargs):
-        max_attempts = self.retry_config.max_retries + 1
-        delay = self.retry_config.retry_delay
+    def _snapshot_state(self):
+        with self._state_lock:
+            return self.channels, self.retry_config
+
+    def _send_with_retry(self, channel, retry_config: RetryConfig, *args, **kwargs):
+        max_attempts = retry_config.max_retries + 1
+        delay = retry_config.retry_delay
 
         for attempt in range(1, max_attempts + 1):
             try:
@@ -149,7 +164,7 @@ class Publisher:
                 if attempt == max_attempts:
                     raise
 
-                if not self._is_retriable_exception(error):
+                if not self._is_retriable_exception(error, retry_config):
                     logger.debug(
                         "Channel %s send failed with non-retriable %s: %s",
                         self._channel_name(channel),
@@ -158,14 +173,16 @@ class Publisher:
                     )
                     raise
 
-                self._log_retry(channel, attempt, error, delay)
+                self._log_retry(channel, attempt, error, delay, retry_config)
                 if delay > 0:
                     time.sleep(delay)
-                delay *= self.retry_config.retry_backoff
+                delay *= retry_config.retry_backoff
 
-    async def _send_with_retry_async(self, channel, *args, **kwargs):
-        max_attempts = self.retry_config.max_retries + 1
-        delay = self.retry_config.retry_delay
+    async def _send_with_retry_async(
+        self, channel, retry_config: RetryConfig, *args, **kwargs
+    ):
+        max_attempts = retry_config.max_retries + 1
+        delay = retry_config.retry_delay
 
         for attempt in range(1, max_attempts + 1):
             try:
@@ -175,7 +192,7 @@ class Publisher:
                 if attempt == max_attempts:
                     raise
 
-                if not self._is_retriable_exception(error):
+                if not self._is_retriable_exception(error, retry_config):
                     logger.debug(
                         "Channel %s send failed with non-retriable %s: %s",
                         self._channel_name(channel),
@@ -184,21 +201,28 @@ class Publisher:
                     )
                     raise
 
-                self._log_retry(channel, attempt, error, delay)
+                self._log_retry(channel, attempt, error, delay, retry_config)
                 if delay > 0:
                     await asyncio.sleep(delay)
-                delay *= self.retry_config.retry_backoff
+                delay *= retry_config.retry_backoff
 
     @staticmethod
     def _channel_name(channel) -> str:
         return channel.__class__.__name__
 
-    def _log_retry(self, channel, attempt: int, error: Exception, delay: float):
+    def _log_retry(
+        self,
+        channel,
+        attempt: int,
+        error: Exception,
+        delay: float,
+        retry_config: RetryConfig,
+    ):
         logger.debug(
             "Channel %s send failed on attempt %s/%s with %s: %s. Retrying in %.2fs",
             self._channel_name(channel),
             attempt,
-            self.retry_config.max_retries + 1,
+            retry_config.max_retries + 1,
             error.__class__.__name__,
             error,
             delay,
@@ -210,7 +234,9 @@ class Publisher:
             raise failures[0][1]
         raise NotificationPublishError(failures)
 
-    def _is_retriable_exception(self, error: Exception) -> bool:
+    def _is_retriable_exception(
+        self, error: Exception, retry_config: RetryConfig
+    ) -> bool:
         if isinstance(error, httpx.HTTPStatusError):
             if error.response is None:
                 return False
@@ -226,7 +252,7 @@ class Publisher:
         if isinstance(error, smtplib.SMTPResponseException):
             return 400 <= error.smtp_code < 500
 
-        return isinstance(error, self.retry_config.retriable_exceptions)
+        return isinstance(error, retry_config.retriable_exceptions)
 
 
 class Notify(Publisher):

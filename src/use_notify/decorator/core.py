@@ -4,6 +4,7 @@
 """
 
 import asyncio
+from contextvars import ContextVar
 import functools
 import inspect
 import logging
@@ -19,13 +20,16 @@ from .sender import NotificationSender
 
 logger = logging.getLogger(__name__)
 
-# 全局默认通知实例
-_default_notify_instance: Optional[Notify] = None
+# 默认通知实例，按当前执行上下文隔离，避免线程/任务间相互污染
+_default_notify_instance_var: ContextVar[Optional[Notify]] = ContextVar(
+    "use_notify_default_instance",
+    default=None,
+)
 RetriableExceptionsInput = Optional[Sequence[Type[BaseException]]]
 
 
 def set_default_notify_instance(notify_instance: Notify) -> None:
-    """设置全局默认通知实例
+    """设置当前执行上下文的默认通知实例
     
     Args:
         notify_instance: 要设置为默认的 Notify 实例
@@ -41,27 +45,25 @@ def set_default_notify_instance(notify_instance: Notify) -> None:
         def my_task():
             return "任务完成"
     """
-    global _default_notify_instance
     if not isinstance(notify_instance, Notify):
         raise NotifyConfigError("notify_instance 必须是 Notify 类的实例")
-    _default_notify_instance = notify_instance
-    logger.info("已设置全局默认通知实例")
+    _default_notify_instance_var.set(notify_instance)
+    logger.info("已设置默认通知实例")
 
 
 def get_default_notify_instance() -> Optional[Notify]:
-    """获取全局默认通知实例
+    """获取当前执行上下文的默认通知实例
     
     Returns:
         当前的默认通知实例，如果未设置则返回 None
     """
-    return _default_notify_instance
+    return _default_notify_instance_var.get()
 
 
 def clear_default_notify_instance() -> None:
-    """清除全局默认通知实例"""
-    global _default_notify_instance
-    _default_notify_instance = None
-    logger.info("已清除全局默认通知实例")
+    """清除当前执行上下文的默认通知实例"""
+    _default_notify_instance_var.set(None)
+    logger.info("已清除默认通知实例")
 
 
 class NotifyDecorator:
@@ -90,27 +92,16 @@ class NotifyDecorator:
             max_retries, retry_delay, retry_backoff, retriable_exceptions,
         )
         
-        # 如果没有提供 notify_instance，尝试使用全局默认实例
-        if notify_instance is None:
-            notify_instance = get_default_notify_instance()
-            if notify_instance is None:
-                notify_instance = Notify()
-                logger.warning("未提供 notify_instance 且未设置全局默认实例，创建了一个空的 Notify 实例。请确保添加通知渠道或设置默认实例。")
-            else:
-                logger.debug("使用全局默认通知实例")
-
-        notify_instance = self._apply_retry_overrides(
-            notify_instance=notify_instance,
-            max_retries=max_retries,
-            retry_delay=retry_delay,
-            retry_backoff=retry_backoff,
-            retriable_exceptions=retriable_exceptions,
-        )
-        
         self.notify_instance = notify_instance
         self.title = title
         self.notify_on_success = notify_on_success
         self.notify_on_error = notify_on_error
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
+        self.retry_backoff = retry_backoff
+        self.retriable_exceptions = retriable_exceptions
+        self._warned_missing_default_notify = False
         
         # 创建消息格式化器
         self.formatter = MessageFormatter(
@@ -120,12 +111,6 @@ class NotifyDecorator:
             include_result=include_result
         )
         
-        # 创建通知发送器
-        self.sender = NotificationSender(
-            notify_instance=self.notify_instance,
-            timeout=timeout
-        )
-    
     def __call__(self, func: Callable) -> Callable:
         """装饰器调用"""
         if inspect.iscoroutinefunction(func):
@@ -222,7 +207,8 @@ class NotifyDecorator:
         try:
             message = self.formatter.format_success_message(context)
             title = self.title or message["title"]
-            self.sender.send_notification(title, message["content"])
+            sender = self._build_sender()
+            sender.send_notification(title, message["content"])
         except Exception as e:
             logger.warning(f"发送成功通知失败: {e}")
     
@@ -231,7 +217,8 @@ class NotifyDecorator:
         try:
             message = self.formatter.format_success_message(context)
             title = self.title or message["title"]
-            await self.sender.send_notification_async(title, message["content"])
+            sender = self._build_sender()
+            await sender.send_notification_async(title, message["content"])
         except Exception as e:
             logger.warning(f"发送成功通知失败: {e}")
     
@@ -240,7 +227,8 @@ class NotifyDecorator:
         try:
             message = self.formatter.format_error_message(context)
             title = self.title or message["title"]
-            self.sender.send_notification(title, message["content"])
+            sender = self._build_sender()
+            sender.send_notification(title, message["content"])
         except Exception as e:
             logger.warning(f"发送错误通知失败: {e}")
     
@@ -249,9 +237,37 @@ class NotifyDecorator:
         try:
             message = self.formatter.format_error_message(context)
             title = self.title or message["title"]
-            await self.sender.send_notification_async(title, message["content"])
+            sender = self._build_sender()
+            await sender.send_notification_async(title, message["content"])
         except Exception as e:
             logger.warning(f"发送错误通知失败: {e}")
+
+    def _build_sender(self) -> NotificationSender:
+        notify_instance = self._resolve_notify_instance()
+        return NotificationSender(notify_instance=notify_instance, timeout=self.timeout)
+
+    def _resolve_notify_instance(self) -> Notify:
+        notify_instance = self.notify_instance
+
+        if notify_instance is None:
+            notify_instance = get_default_notify_instance()
+            if notify_instance is None:
+                notify_instance = Notify()
+                if not self._warned_missing_default_notify:
+                    logger.warning(
+                        "未提供 notify_instance 且当前执行上下文未设置默认实例，创建了一个空的 Notify 实例。请确保添加通知渠道或设置默认实例。"
+                    )
+                    self._warned_missing_default_notify = True
+            else:
+                logger.debug("使用全局默认通知实例")
+
+        return self._apply_retry_overrides(
+            notify_instance=notify_instance,
+            max_retries=self.max_retries,
+            retry_delay=self.retry_delay,
+            retry_backoff=self.retry_backoff,
+            retriable_exceptions=self.retriable_exceptions,
+        )
     
     def _validate_config(self, *args) -> None:
         """验证配置参数"""

@@ -18,7 +18,7 @@ features:
     details: 提供简洁的 API 接口，几行代码即可集成多种通知渠道
   - icon: ⚡️
     title: 多渠道支持
-    details: 内置钉钉、企微、Bark、Pushover、Pushdeer、邮件等多种消息通知渠道
+    details: 内置钉钉、企微、Bark、PushOver、PushDeer、邮件等多种消息通知渠道
   - icon: 🎯
     title: 装饰器模式
     details: 使用 @notify 装饰器自动化函数执行通知，支持成功/失败通知

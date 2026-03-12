@@ -4,12 +4,12 @@
 
 ## 基本用法
 
-### 设置全局默认实例
+### 设置默认实例
 
 ```python
 from use_notify import useNotify, useNotifyChannel, notify, set_default_notify_instance
 
-# 创建并设置全局默认通知实例
+# 创建并设置当前执行上下文的默认通知实例
 default_notify = useNotify()
 default_notify.add(
     useNotifyChannel.Bark({"token": "your_bark_token"}),
@@ -21,7 +21,7 @@ set_default_notify_instance(default_notify)
 ### 简单使用
 
 ```python
-# 基本使用，使用全局默认实例
+# 基本使用，使用当前执行上下文中的默认实例
 @notify()
 def data_processing():
     # 数据处理逻辑
@@ -51,10 +51,8 @@ def error_only_task():
         raise Exception("随机失败")
     return "成功执行"
 
-# 禁用所有通知
-@notify(notify_on_success=False, notify_on_error=False)
-def silent_task():
-    return "静默执行"
+# 当前版本不允许同时关闭成功和失败通知
+# 如果想在测试时避免真实发送，建议改用 Console 渠道或测试专用 notify_instance
 ```
 
 ### 自定义消息模板
@@ -94,6 +92,21 @@ def full_info_task(operation, items):
 @notify(timeout=5)
 def task_with_timeout():
     return "带超时设置的任务"
+```
+
+这里的 `timeout` 作用于“发送通知”阶段，不是业务函数自身的执行超时。
+
+### 重试设置
+
+```python
+@notify(
+    max_retries=2,
+    retry_delay=0.5,
+    retry_backoff=2.0,
+    retriable_exceptions=(TimeoutError,),
+)
+def task_with_retry():
+    return "带重试设置的任务"
 ```
 
 ## 异步函数支持
@@ -148,13 +161,15 @@ def detailed_task(name, value):
 # 创建特定的通知实例
 special_notify = useNotify()
 special_notify.add(useNotifyChannel.Email({
-    "smtp_server": "smtp.company.com",
+    "server": "smtp.company.com",
+    "port": 465,
     "username": "alerts@company.com",
     "password": "password",
+    "from_email": "alerts@company.com",
     "to_emails": ["admin@company.com"]
 }))
 
-# 使用特定实例，覆盖全局默认实例
+# 使用特定实例，覆盖当前上下文中的默认实例
 @notify(notify_instance=special_notify, title="系统警报")
 def critical_system_check():
     # 关键系统检查
@@ -281,8 +296,8 @@ except ValueError as e:
 ### 禁用通知进行测试
 
 ```python
-# 在测试环境中禁用通知
-@notify(notify_on_success=False, notify_on_error=False)
+# 测试环境建议使用 Console 渠道或专用测试实例
+@notify(notify_instance=debug_notify)
 def test_function():
     return "测试结果"
 ```

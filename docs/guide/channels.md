@@ -89,12 +89,12 @@ notify.add(useNotifyChannel.Email({
 - `to_emails` (必需): 收件人邮箱列表
 - `from_email` (可选): 发件人邮箱，默认使用 username
 
-### Pushover
+### PushOver
 
-Pushover 推送服务。
+PushOver 推送服务。
 
 ```python
-notify.add(useNotifyChannel.Pushover({
+notify.add(useNotifyChannel.PushOver({
     "token": "your_app_token",  # 必需
     "user": "your_user_key",  # 必需
     "device": "your_device",  # 可选
@@ -104,26 +104,26 @@ notify.add(useNotifyChannel.Pushover({
 ```
 
 **配置参数：**
-- `token` (必需): Pushover 应用令牌
-- `user` (必需): Pushover 用户密钥
+- `token` (必需): PushOver 应用令牌
+- `user` (必需): PushOver 用户密钥
 - `device` (可选): 特定设备名称
 - `priority` (可选): 消息优先级，范围 -2 到 2
 - `sound` (可选): 通知声音
 
-### Pushdeer
+### PushDeer
 
-Pushdeer 推送服务。
+PushDeer 推送服务。
 
 ```python
-notify.add(useNotifyChannel.Pushdeer({
+notify.add(useNotifyChannel.PushDeer({
     "token": "your_pushdeer_token",  # 必需
     "base_url": "https://api2.pushdeer.com"  # 可选，默认官方服务器
 }))
 ```
 
 **配置参数：**
-- `token` (必需): Pushdeer 设备令牌
-- `base_url` (可选): Pushdeer 服务器地址
+- `token` (必需): PushDeer 设备令牌
+- `base_url` (可选): PushDeer 服务器地址
 
 ### Chanify
 
@@ -246,7 +246,7 @@ alert_notify.add(
         "password": "password",
         "to_emails": ["admin@company.com", "ops@company.com"]
     }),
-    useNotifyChannel.Pushover({
+    useNotifyChannel.PushOver({
         "token": "pushover_token",
         "user": "admin_user",
         "priority": 2  # 高优先级
@@ -275,11 +275,11 @@ class CustomChannel(BaseChannel):
     """自定义通知渠道"""
     
     def __init__(self, config):
-        super().__init__()
-        self.api_url = config.get("api_url")
-        self.api_key = config.get("api_key")
+        super().__init__(config)
+        self.api_url = self.config.api_url
+        self.api_key = self.config.api_key
     
-    def send(self, title, content, **kwargs):
+    def send(self, content, title=None):
         """同步发送通知"""
         try:
             response = requests.post(
@@ -288,12 +288,10 @@ class CustomChannel(BaseChannel):
                 json={"title": title, "message": content}
             )
             response.raise_for_status()
-            return True
         except Exception as e:
             print(f"发送通知失败: {e}")
-            return False
     
-    async def send_async(self, title, content, **kwargs):
+    async def send_async(self, content, title=None):
         """异步发送通知"""
         import aiohttp
         try:
@@ -304,10 +302,8 @@ class CustomChannel(BaseChannel):
                     json={"title": title, "message": content}
                 ) as response:
                     response.raise_for_status()
-                    return True
         except Exception as e:
             print(f"发送通知失败: {e}")
-            return False
 
 # 使用自定义渠道
 notify = useNotify()
@@ -334,7 +330,7 @@ notify.add(useNotifyChannel.Bark({
 
 notify.add(useNotifyChannel.Ding({
     "token": os.getenv("DING_TOKEN"),
-    "secret": os.getenv("DING_SECRET")
+    "at_all": False
 }))
 
 notify.add(useNotifyChannel.Email({

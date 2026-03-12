@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@notify 装饰器全局默认实例演示
+@notify 装饰器默认实例演示
 
-本示例展示如何设置全局默认通知实例，
+本示例展示如何设置当前执行上下文的默认通知实例，
 避免每次使用装饰器都需要传递 notify_instance 参数。
 """
 
@@ -26,17 +26,17 @@ from use_notify.channels.console import Console as ConsoleChannel
 from use_notify.channels.base import BaseChannel
 
 def setup_default_notify_instance():
-    """设置全局默认通知实例"""
-    print("🔧 设置全局默认通知实例...")
+    """设置当前执行上下文的默认通知实例"""
+    print("🔧 设置默认通知实例...")
     
     # 创建通知实例
     default_notify = useNotify()
     default_notify.add(ConsoleChannel())
     
-    # 设置为全局默认实例
+    # 设置为当前执行上下文的默认实例
     set_default_notify_instance(default_notify)
     
-    print("✅ 全局默认通知实例设置完成")
+    print("✅ 默认通知实例设置完成")
     return default_notify
 
 setup_default_notify_instance()
@@ -136,7 +136,7 @@ def demo_override_instance():
 
 def main():
     """主函数"""
-    print("🚀 @notify 装饰器全局默认实例演示")
+    print("🚀 @notify 装饰器默认实例演示")
     print("=" * 60)
     
     print(f"\n📋 当前默认实例: {get_default_notify_instance()}")
@@ -208,7 +208,7 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("🎉 演示完成！")
     print("\n💡 使用提示:")
-    print("1. 使用 set_default_notify_instance() 设置全局默认通知实例")
+    print("1. 使用 set_default_notify_instance() 设置默认通知实例")
     print("2. 设置后，所有 @notify() 装饰器都会自动使用默认实例")
     print("3. 仍可通过 notify_instance 参数覆盖默认实例")
     print("4. 使用 clear_default_notify_instance() 清除默认实例")

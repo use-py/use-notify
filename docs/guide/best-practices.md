@@ -269,10 +269,11 @@ class OptimizedNotifyManager:
         """设置优化的通知渠道"""
         # 使用连接池的邮件配置
         email_config = {
-            "smtp_server": os.getenv("SMTP_SERVER"),
-            "smtp_port": int(os.getenv("SMTP_PORT", "587")),
+            "server": os.getenv("SMTP_SERVER"),
+            "port": int(os.getenv("SMTP_PORT", "465")),
             "username": os.getenv("EMAIL_USERNAME"),
             "password": os.getenv("EMAIL_PASSWORD"),
+            "from_email": os.getenv("EMAIL_USERNAME"),
             "to_emails": os.getenv("EMAIL_RECIPIENTS", "").split(","),
             "pool_size": 5,  # 连接池大小
             "max_retries": 3  # 最大重试次数
@@ -413,10 +414,11 @@ class FallbackNotify:
         notify.add(
             useNotifyChannel.Ding({"token": os.getenv("DING_TOKEN")}),
             useNotifyChannel.Email({
-                "smtp_server": "smtp.company.com",
-                "smtp_port": 587,
+                "server": "smtp.company.com",
+                "port": 465,
                 "username": os.getenv("EMAIL_USERNAME"),
                 "password": os.getenv("EMAIL_PASSWORD"),
+                "from_email": os.getenv("EMAIL_USERNAME"),
                 "to_emails": [os.getenv("EMAIL_RECIPIENT")]
             })
         )
@@ -431,12 +433,11 @@ class FallbackNotify:
     def _create_emergency_notify(self):
         """创建紧急通知渠道（本地日志）"""
         class LogChannel:
-            def send(self, title, content, **kwargs):
+            def send(self, content, title=None):
                 logger.critical(f"[紧急通知] {title}: {content}")
-                return True
             
-            async def send_async(self, title, content, **kwargs):
-                return self.send(title, content, **kwargs)
+            async def send_async(self, content, title=None):
+                return self.send(content, title)
         
         notify = useNotify()
         notify.add(LogChannel())
@@ -592,17 +593,15 @@ class DebugNotify:
         if self.debug:
             # 调试模式：使用控制台输出
             class DebugChannel:
-                def send(self, title, content, **kwargs):
+                def send(self, content, title=None):
                     print(f"\n[DEBUG NOTIFICATION]")
                     print(f"Title: {title}")
                     print(f"Content: {content}")
-                    print(f"Kwargs: {kwargs}")
                     print(f"Timestamp: {datetime.now()}")
                     print("-" * 50)
-                    return True
                 
-                async def send_async(self, title, content, **kwargs):
-                    return self.send(title, content, **kwargs)
+                async def send_async(self, content, title=None):
+                    return self.send(content, title)
             
             notify.add(DebugChannel())
         else:
@@ -886,15 +885,13 @@ def performance_test():
         def __init__(self):
             self.call_count = 0
         
-        def send(self, title, content, **kwargs):
+        def send(self, content, title=None):
             self.call_count += 1
             time.sleep(0.001)  # 模拟1ms延迟
-            return True
         
-        async def send_async(self, title, content, **kwargs):
+        async def send_async(self, content, title=None):
             self.call_count += 1
             await asyncio.sleep(0.001)  # 模拟1ms异步延迟
-            return True
     
     test_channel = FastTestChannel()
     test_notify.add(test_channel)

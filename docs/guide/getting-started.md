@@ -28,10 +28,11 @@ notify.add(
         "at_all": True
     }),
     useNotifyChannel.Email({
-        "smtp_server": "smtp.gmail.com",
-        "smtp_port": 587,
+        "server": "smtp.gmail.com",
+        "port": 465,
         "username": "your_email@gmail.com",
         "password": "your_password",
+        "from_email": "your_email@gmail.com",
         "to_emails": ["recipient@example.com"]
     })
 )
@@ -49,13 +50,17 @@ await notify.publish_async(title="异步消息", content="异步消息正文")
 
 ## 装饰器使用
 
-### 设置全局默认实例
+### 设置默认实例
 
 ```python
-from use_notify import notify, set_default_notify_instance
+from use_notify import notify, set_default_notify_instance, useNotify, useNotifyChannel
 
-# 设置全局默认通知实例
-set_default_notify_instance(notify)
+notify_instance = useNotify([
+    useNotifyChannel.Console(),
+])
+
+# 设置当前执行上下文的默认通知实例
+set_default_notify_instance(notify_instance)
 ```
 
 ### 基本装饰器用法

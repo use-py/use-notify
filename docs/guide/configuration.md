@@ -79,9 +79,9 @@ def load_notify_from_json(config_file):
         elif channel_type == 'email':
             notify.add(useNotifyChannel.Email(params))
         elif channel_type == 'pushover':
-            notify.add(useNotifyChannel.Pushover(params))
+            notify.add(useNotifyChannel.PushOver(params))
         elif channel_type == 'pushdeer':
-            notify.add(useNotifyChannel.Pushdeer(params))
+            notify.add(useNotifyChannel.PushDeer(params))
         elif channel_type == 'chanify':
             notify.add(useNotifyChannel.Chanify(params))
     
@@ -108,17 +108,17 @@ notify = load_notify_from_json('notify_config.json')
       "type": "ding",
       "params": {
         "token": "${DING_TOKEN}",
-        "secret": "${DING_SECRET}",
         "at_all": false
       }
     },
     {
       "type": "email",
       "params": {
-        "smtp_server": "smtp.gmail.com",
-        "smtp_port": 587,
+        "server": "smtp.gmail.com",
+        "port": 465,
         "username": "${EMAIL_USERNAME}",
         "password": "${EMAIL_PASSWORD}",
+        "from_email": "${EMAIL_USERNAME}",
         "to_emails": ["${EMAIL_RECIPIENT}"]
       }
     }
@@ -145,8 +145,8 @@ def load_notify_from_yaml(config_file):
         'ding': useNotifyChannel.Ding,
         'wechat': useNotifyChannel.WeChat,
         'email': useNotifyChannel.Email,
-        'pushover': useNotifyChannel.Pushover,
-        'pushdeer': useNotifyChannel.Pushdeer,
+        'pushover': useNotifyChannel.PushOver,
+        'pushdeer': useNotifyChannel.PushDeer,
         'chanify': useNotifyChannel.Chanify
     }
     
@@ -176,15 +176,15 @@ channels:
   - type: ding
     params:
       token: ${DING_TOKEN}
-      secret: ${DING_SECRET}
       at_all: false
   
   - type: email
     params:
-      smtp_server: smtp.gmail.com
-      smtp_port: 587
+      server: smtp.gmail.com
+      port: 465
       username: ${EMAIL_USERNAME}
       password: ${EMAIL_PASSWORD}
+      from_email: ${EMAIL_USERNAME}
       to_emails:
         - ${EMAIL_RECIPIENT}
 ```
@@ -256,14 +256,14 @@ class NotifyConfigTemplate:
             }),
             useNotifyChannel.Ding({
                 "token": os.getenv("PROD_DING_TOKEN"),
-                "secret": os.getenv("PROD_DING_SECRET"),
                 "at_all": True
             }),
             useNotifyChannel.Email({
-                "smtp_server": "smtp.company.com",
-                "smtp_port": 587,
+                "server": "smtp.company.com",
+                "port": 465,
                 "username": os.getenv("PROD_EMAIL_USERNAME"),
                 "password": os.getenv("PROD_EMAIL_PASSWORD"),
+                "from_email": os.getenv("PROD_EMAIL_USERNAME"),
                 "to_emails": os.getenv("PROD_EMAIL_RECIPIENTS", "").split(",")
             })
         )
@@ -274,8 +274,8 @@ class NotifyConfigTemplate:
         """测试环境配置"""
         notify = useNotify()
         # 测试环境可以使用控制台输出
-        from use_notify.channels import ConsoleChannel
-        notify.add(ConsoleChannel())
+        from use_notify.channels import Console
+        notify.add(Console())
         return notify
 
 # 根据环境选择配置
@@ -340,17 +340,17 @@ class ProductionConfig(NotifyConfigFactory):
         if os.getenv("PROD_DING_TOKEN"):
             channels.append(useNotifyChannel.Ding({
                 "token": os.getenv("PROD_DING_TOKEN"),
-                "secret": os.getenv("PROD_DING_SECRET"),
                 "at_all": False
             }))
         
         # 邮件通知
         if all([os.getenv("PROD_EMAIL_USERNAME"), os.getenv("PROD_EMAIL_PASSWORD")]):
             channels.append(useNotifyChannel.Email({
-                "smtp_server": os.getenv("PROD_SMTP_SERVER", "smtp.gmail.com"),
-                "smtp_port": int(os.getenv("PROD_SMTP_PORT", "587")),
+                "server": os.getenv("PROD_SMTP_SERVER", "smtp.gmail.com"),
+                "port": int(os.getenv("PROD_SMTP_PORT", "465")),
                 "username": os.getenv("PROD_EMAIL_USERNAME"),
                 "password": os.getenv("PROD_EMAIL_PASSWORD"),
+                "from_email": os.getenv("PROD_EMAIL_USERNAME"),
                 "to_emails": os.getenv("PROD_EMAIL_RECIPIENTS", "").split(",")
             }))
         
@@ -367,13 +367,11 @@ class TestingConfig(NotifyConfigFactory):
         
         # 测试环境使用模拟通知
         class MockChannel:
-            def send(self, title, content, **kwargs):
+            def send(self, content, title=None):
                 print(f"[MOCK] {title}: {content}")
-                return True
             
-            async def send_async(self, title, content, **kwargs):
+            async def send_async(self, content, title=None):
                 print(f"[MOCK ASYNC] {title}: {content}")
-                return True
         
         notify.add(MockChannel())
         return notify
@@ -422,7 +420,7 @@ class ConfigValidator:
         'bark': ['token'],
         'ding': ['token'],
         'wechat': ['token'],
-        'email': ['smtp_server', 'smtp_port', 'username', 'password', 'to_emails'],
+        'email': ['server', 'port', 'username', 'password', 'from_email', 'to_emails'],
         'pushover': ['token', 'user'],
         'pushdeer': ['token'],
         'chanify': ['token']
@@ -517,8 +515,8 @@ def load_and_validate_config(config_file: str) -> useNotify:
         'ding': useNotifyChannel.Ding,
         'wechat': useNotifyChannel.WeChat,
         'email': useNotifyChannel.Email,
-        'pushover': useNotifyChannel.Pushover,
-        'pushdeer': useNotifyChannel.Pushdeer,
+        'pushover': useNotifyChannel.PushOver,
+        'pushdeer': useNotifyChannel.PushDeer,
         'chanify': useNotifyChannel.Chanify
     }
     
@@ -606,16 +604,14 @@ class TestNotifyConfig:
             def __init__(self):
                 self.sent_messages = []
             
-            def send(self, title, content, **kwargs):
+            def send(self, content, title=None):
                 self.sent_messages.append({
                     'title': title,
                     'content': content,
-                    'kwargs': kwargs
                 })
-                return True
             
-            async def send_async(self, title, content, **kwargs):
-                return self.send(title, content, **kwargs)
+            async def send_async(self, content, title=None):
+                return self.send(content, title)
         
         test_channel = TestChannel()
         notify.add(test_channel)

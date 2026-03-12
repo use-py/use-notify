@@ -19,8 +19,8 @@ except Exception as e:
 
 # 异步发送
 async def async_example():
-    await ntfy.send_async("这是异步消息", "异步标题")
     try:
+        await ntfy.send_async("这是异步消息", "异步标题")
         print("✓ 异步消息发送成功")
     except Exception as e:
         print(f"✗ 异步发送失败: {e}")

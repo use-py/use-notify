@@ -1,27 +1,29 @@
-[tool.poetry]
+[project]
 name = "use-notify"
 version = "0.3.5"
 description = "一个简单可扩展的异步消息通知库"
-authors = ["miclon <jcnd@163.com>"]
 readme = "README.md"
-packages = [{ include = 'use_notify', from = 'src' }]
+requires-python = ">=3.8,<4.0"
+authors = [
+    { name = "miclon", email = "jcnd@163.com" },
+]
+dependencies = [
+    "httpx",
+    "usepy>=0.4.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-usepy = "^0.4.0"
-httpx = "*"
-
-
-[tool.poetry.group.test.dependencies]
-pylint = "*"
-pytest = "*"
-black = "*"
-flake8 = "*"
-isort = "*"
-pre-commit = "*"
-pre-commit-hooks = "*"
-pytest-asyncio = "0.18.3"
+[dependency-groups]
+dev = [
+    "black",
+    "flake8",
+    "isort",
+    "pre-commit",
+    "pre-commit-hooks",
+    "pylint",
+    "pytest",
+    "pytest-asyncio==0.18.3",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"

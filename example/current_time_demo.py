@@ -5,8 +5,8 @@
 """
 
 import time
+
 from use_notify import useNotify
-from use_notify.decorator import MessageFormatter
 from use_notify.channels.base import BaseChannel
 
 
@@ -15,13 +15,13 @@ class DemoChannel(BaseChannel):
     def __init__(self):
         super().__init__({})
     
-    def send(self, title=None, content=None, **kwargs):
+    def send(self, content, title=None):
         print(f"📧 通知标题: {title}")
         print(f"📝 通知内容: {content}")
         print("-" * 50)
     
-    async def send_async(self, title=None, content=None, **kwargs):
-        self.send(title, content, **kwargs)
+    async def send_async(self, content, title=None):
+        self.send(content, title)
 
 
 def main():

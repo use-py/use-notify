@@ -12,17 +12,14 @@
 """
 
 import asyncio
-import sys
 import os
+import sys
 import time
-from datetime import datetime
-
-from use_notify.channels.wechat import WeChat
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from use_notify import useNotify, useNotifyChannel, notify
+from use_notify import notify, useNotify
 from use_notify.channels.base import BaseChannel
 
 
@@ -33,12 +30,12 @@ class ConsoleChannel(BaseChannel):
     def __init__(self, config=None):
         super().__init__(config or {})
     
-    def send(self, title=None, content=None, **kwargs):
+    def send(self, content, title=None):
         print(f"\n📢 [同步通知] {title}")
         print(f"📝 {content}")
         print("-" * 50)
     
-    async def send_async(self, title=None, content=None, **kwargs):
+    async def send_async(self, content, title=None):
         print(f"\n📢 [异步通知] {title}")
         print(f"📝 {content}")
         print("-" * 50)

@@ -8,11 +8,9 @@
 """
 
 import asyncio
-import sys
 import os
+import sys
 import time
-
-from use_notify.channels.console import Console as ConsoleChannel
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -24,6 +22,7 @@ from use_notify import (
     get_default_notify_instance,
     clear_default_notify_instance
 )
+from use_notify.channels.console import Console as ConsoleChannel
 from use_notify.channels.base import BaseChannel
 
 def setup_default_notify_instance():
@@ -107,12 +106,12 @@ def demo_override_instance():
         def __init__(self, config=None):
             super().__init__(config or {})
         
-        def send(self, title, content):
+        def send(self, content, title=None):
             print(f"\n🔥 [特殊通知] {title}")
             print(f"🔥 {content}")
             print("=" * 50)
         
-        async def send_async(self, title, content):
+        async def send_async(self, content, title=None):
             print(f"\n🔥 [特殊异步通知] {title}")
             print(f"🔥 {content}")
             print("=" * 50)

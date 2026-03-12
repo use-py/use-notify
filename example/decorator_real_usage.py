@@ -24,7 +24,7 @@ def create_notify_instance():
     # 方式1: 使用配置字典
     settings = {
         # "BARK": {"token": "your_bark_token_here"},
-        # "DINGTALK": {"access_token": "your_dingtalk_token_here"},
+        # "DING": {"token": "your_ding_token_here"},
         # "WECHAT": {"token": "your_wechat_webhook_token_here"},
     }
     
@@ -36,7 +36,7 @@ def create_notify_instance():
     notify_instance = useNotify()
     # notify_instance.add(
     #     useNotifyChannel.Bark({"token": "your_bark_token_here"}),
-    #     useNotifyChannel.DingTalk({"access_token": "your_dingtalk_token_here"})
+    #     useNotifyChannel.Ding({"token": "your_ding_token_here"})
     # )
     
     return notify_instance
@@ -244,5 +244,5 @@ if __name__ == "__main__":
     print("\n💡 配置提示:")
     print("1. 请在 create_notify_instance() 函数中配置真实的通知渠道")
     print("2. 取消注释相应的通知渠道配置代码")
-    print("3. 替换为您的真实 token 或 access_token")
-    print("4. 支持的通知渠道: Bark, DingTalk, WeChat, Email, PushDeer 等")
+    print("3. 替换为您的真实 token")
+    print("4. 支持的通知渠道: Bark, Ding, WeChat, Email, PushDeer 等")

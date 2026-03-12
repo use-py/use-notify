@@ -38,7 +38,7 @@ notify.publish(title="消息标题", content="消息正文")
 ```python
 from use_notify import useNotify, useNotifyChannel, notify, set_default_notify_instance
 
-# 创建并设置全局默认通知实例
+# 创建并设置当前执行上下文的默认通知实例
 default_notify = useNotify()
 default_notify.add(
     useNotifyChannel.Bark({"token": "your_bark_token"}),
@@ -75,10 +75,10 @@ async def async_task():
 - ✅ 自动发送成功/失败通知
 - ✅ 支持同步和异步函数
 - ✅ 可配置通知条件和自定义消息
-- ✅ 全局默认实例，简化使用
+- ✅ 默认实例机制，简化使用
 - ✅ 执行上下文信息收集
 
-> 📖 **详细文档**: [装饰器完整使用指南](docs/decorator.md)
+> 📖 **详细文档**: [装饰器完整使用指南](docs/guide/decorator.md)
 
 #### 支持的消息通知渠道列表
 
@@ -87,8 +87,8 @@ async def async_task():
 - Bark
 - Email
 - Chanify
-- Pushdeer
-- Pushover
+- PushDeer
+- PushOver
 - FeiShu(飞书)
 - Ntfy
 
@@ -101,24 +101,24 @@ from use_notify import useNotifyChannel
 class Custom(useNotifyChannel.BaseChannel):
     """自定义消息通知"""
 
-    def send(self, *args, **kwargs):
+    def send(self, content, title=None):
         ...
 
-    async def send_async(self, *args, **kwargs):
+    async def send_async(self, content, title=None):
         ...
 ```
 
 #### 更多示例
 
-- [基础使用示例](example/demo.py)
 - [装饰器演示](example/decorator_demo.py)
 - [装饰器真实场景应用](example/decorator_real_usage.py)
-- [全局默认实例使用](example/decorator_default_instance.py)
+- [默认实例使用](example/decorator_default_instance.py)
+- [当前时间模板变量演示](example/current_time_demo.py)
 - [配置文件使用](example/from_setting.py)
 
 #### 文档
 
-- [装饰器完整使用指南](docs/decorator.md) - 详细的装饰器功能说明和最佳实践
+- [装饰器完整使用指南](docs/guide/decorator.md) - 详细的装饰器功能说明和最佳实践
 
 #### 特性
 
@@ -127,4 +127,4 @@ class Custom(useNotifyChannel.BaseChannel):
 - 🎯 **装饰器模式**: 使用 `@notify` 装饰器自动化通知
 - 🔧 **高度可扩展**: 轻松添加自定义通知渠道
 - 📱 **多渠道支持**: 支持微信、钉钉、Bark、邮件等多种通知方式
-- ⚙️ **灵活配置**: 支持条件通知、自定义模板、全局默认实例等高级功能
+- ⚙️ **灵活配置**: 支持条件通知、自定义模板、默认实例、超时与重试等高级功能

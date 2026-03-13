@@ -27,3 +27,7 @@ dev = [
 [build-system]
 requires = ["uv_build>=0.10.4,<0.11.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+source-exclude = ["/SKILL.md", "/skill-references/**"]
+wheel-exclude = ["/SKILL.md", "/skill-references/**"]

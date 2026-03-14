@@ -8,6 +8,7 @@ from contextvars import ContextVar
 import functools
 import inspect
 import logging
+import threading
 from datetime import datetime
 from typing import Callable, Optional, Sequence, Type
 
@@ -26,6 +27,9 @@ _default_notify_instance_var: ContextVar[Optional[Notify]] = ContextVar(
     default=None,
 )
 RetriableExceptionsInput = Optional[Sequence[Type[BaseException]]]
+
+# 线程锁，用于保护类级别共享状态
+_decorators_lock = threading.Lock()
 
 
 def set_default_notify_instance(notify_instance: Notify) -> None:
@@ -68,7 +72,10 @@ def clear_default_notify_instance() -> None:
 
 class NotifyDecorator:
     """通知装饰器类"""
-    
+
+    # 类级别缓存，记录已发出警告的装饰器实例
+    _warned_missing_default: set = set()
+
     def __init__(
         self,
         notify_instance: Optional[Notify] = None,
@@ -91,7 +98,7 @@ class NotifyDecorator:
             notify_on_success, notify_on_error, include_args, include_result, timeout,
             max_retries, retry_delay, retry_backoff, retriable_exceptions,
         )
-        
+
         self.notify_instance = notify_instance
         self.title = title
         self.notify_on_success = notify_on_success
@@ -101,7 +108,8 @@ class NotifyDecorator:
         self.retry_delay = retry_delay
         self.retry_backoff = retry_backoff
         self.retriable_exceptions = retriable_exceptions
-        self._warned_missing_default_notify = False
+        # 使用装饰器实例的唯一ID作为标识
+        self._instance_id = id(self)
         
         # 创建消息格式化器
         self.formatter = MessageFormatter(
@@ -253,11 +261,13 @@ class NotifyDecorator:
             notify_instance = get_default_notify_instance()
             if notify_instance is None:
                 notify_instance = Notify()
-                if not self._warned_missing_default_notify:
-                    logger.warning(
-                        "未提供 notify_instance 且当前执行上下文未设置默认实例，创建了一个空的 Notify 实例。请确保添加通知渠道或设置默认实例。"
-                    )
-                    self._warned_missing_default_notify = True
+                # 使用类级别缓存和锁避免多线程/多任务场景下的重复警告
+                with _decorators_lock:
+                    if self._instance_id not in self._warned_missing_default:
+                        logger.warning(
+                            "未提供 notify_instance 且当前执行上下文未设置默认实例，创建了一个空的 Notify 实例。请确保添加通知渠道或设置默认实例。"
+                        )
+                        self._warned_missing_default.add(self._instance_id)
             else:
                 logger.debug("使用全局默认通知实例")
 

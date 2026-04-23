@@ -1,11 +1,36 @@
 ---
 name: use-notify
-description: Help users integrate and troubleshoot the use-notify Python library. Use when asked about use-notify, @notify, NotificationPublishError, RetryConfig, default notify instances, custom notification channels, or any Bark/Ding/WeChat/WeCom/Email/Chanify/Feishu/Ntfy/PushDeer/PushOver notification setup.
+description: "Configure notification channels, set up retry policies, debug publish errors, and customize @notify decorators for the use-notify Python library. Use when asked about use-notify, @notify, NotificationPublishError, RetryConfig, default notify instances, custom notification channels, useNotify.from_settings, set_default_notify_instance, or any Bark/Ding/WeChat/WeCom/Email/Chanify/Feishu/Ntfy/PushDeer/PushOver notification setup."
 ---
 
 # use-notify
 
 Use this skill when the user wants to add notifications with `use-notify`, choose a channel, wire `@notify` into existing code, or debug delivery and retry behavior.
+
+## Quick examples
+
+**Decorator pattern** — wrap a function to send notifications on success or failure:
+
+```python
+from use_notify import notify, set_default_notify_instance, useNotify, useNotifyChannel
+
+default_notify = useNotify([useNotifyChannel.Console()])
+set_default_notify_instance(default_notify)
+
+@notify(title="Data sync")
+def sync_data():
+    return "ok"
+```
+
+**Publisher pattern** — send ad hoc notifications from scripts or services:
+
+```python
+from use_notify import useNotify, useNotifyChannel
+
+n = useNotify()
+n.add(useNotifyChannel.Ntfy({"topic": "alerts"}))
+n.publish(title="Deploy done", content="Production release successful")
+```
 
 ## What to read
 
@@ -21,6 +46,7 @@ Read only the references needed for the request.
 2. Generate code against the current public API in this repo.
 3. Prefer the smallest working example that matches the user's stack.
 4. Call out behavior that often surprises users, especially retries and error propagation.
+5. Verify the solution handles errors correctly — check whether the user needs `NotificationPublishError` handling for multi-channel failures and whether retry settings match their reliability requirements.
 
 ## Integration defaults
 

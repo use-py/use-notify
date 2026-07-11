@@ -23,20 +23,20 @@ class Email(BaseChannel):
 
     def _validate_required_fields(self):
         """校验必填字段"""
-        required_fields = ['server', 'username', 'password', 'from_email']
+        required_fields = ["server", "username", "password", "from_email"]
         missing_fields = []
-        
+
         for field in required_fields:
             if not hasattr(self.config, field) or not getattr(self.config, field):
                 missing_fields.append(field)
-        
+
         # 单独校验端口号
         if not self.config.port and not isinstance(self.config.port, int):
-            missing_fields.append('port')
-        
+            missing_fields.append("port")
+
         if missing_fields:
             raise ValueError(f"缺少必填字段: {', '.join(missing_fields)}")
-        
+
         # 校验端口号是否为有效整数
         try:
             port = int(self.config.port)

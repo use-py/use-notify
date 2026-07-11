@@ -13,9 +13,7 @@ class WeChat(BaseChannel):
 
     @property
     def api_url(self):
-        return (
-            f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={self.config.token}"
-        )
+        return f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={self.config.token}"
 
     @property
     def headers(self):
@@ -29,7 +27,7 @@ class WeChat(BaseChannel):
             api_body["markdown"]["mentioned_list"] = self.config.mentioned_list
         if self.config.mentioned_mobile_list:
             api_body["markdown"]["mentioned_mobile_list"] = self.config.mentioned_mobile_list
-        
+
         return api_body
 
     def send(self, content, title=None):

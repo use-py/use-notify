@@ -1,9 +1,10 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 import threading
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
+from tests.helpers import RecordingChannel
 from use_notify import (
     clear_default_notify_instance,
     get_default_notify_instance,
@@ -12,8 +13,6 @@ from use_notify import (
     useNotify,
 )
 from use_notify.decorator import NotifyConfigError, NotifyDecorator
-
-from tests.helpers import RecordingChannel
 
 
 class TestNotifyDecorator:
@@ -230,6 +229,7 @@ class TestNotifyDecorator:
             return "ok"
 
         import asyncio
+
         start = asyncio.get_event_loop().time()
 
         # 在异步上下文中调用同步装饰器
@@ -257,6 +257,7 @@ class TestNotifyDecorator:
     @pytest.mark.asyncio
     async def test_async_timeout_works(self):
         """测试异步超时正常工作"""
+
         class SlowChannel(RecordingChannel):
             async def send_async(self, content, title=None):
                 await asyncio.sleep(2)
@@ -278,5 +279,3 @@ class TestNotifyDecorator:
         assert elapsed < 0.5, f"函数执行时间 {elapsed:.2f}s 超过预期"
         # 超时应该生效，通知发送失败
         assert len(channel.async_messages) == 0
-
-

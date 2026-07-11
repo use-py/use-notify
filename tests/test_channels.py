@@ -110,6 +110,12 @@ def test_chanify_send_builds_expected_request(mock_client):
     response.raise_for_status.assert_called_once_with()
 
 
+def test_chanify_omits_title_when_missing():
+    channel = useNotifyChannel.Chanify({"token": "token"})
+
+    assert channel.build_api_body("hello") == {"text": "hello"}
+
+
 def test_ding_build_api_body_includes_mentions():
     channel = useNotifyChannel.Ding(
         {
@@ -236,6 +242,15 @@ def test_wechat_build_api_body_includes_mentions():
             "mentioned_list": ["@all"],
             "mentioned_mobile_list": ["13800000000"],
         },
+        "msgtype": "markdown",
+    }
+
+
+def test_wechat_omits_title_when_missing():
+    channel = useNotifyChannel.WeChat({"token": "token"})
+
+    assert channel.build_api_body(None, "hello") == {
+        "markdown": {"content": "hello"},
         "msgtype": "markdown",
     }
 

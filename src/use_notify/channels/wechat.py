@@ -21,7 +21,8 @@ class WeChat(BaseChannel):
         return {"Content-Type": "application/json"}
 
     def build_api_body(self, title, content):
-        content = f"## {title}\n\n{content}"
+        if title:
+            content = f"## {title}\n\n{content}"
         api_body = {"markdown": {"content": content}, "msgtype": "markdown"}
 
         if self.config.mentioned_list:

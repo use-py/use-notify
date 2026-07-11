@@ -16,7 +16,10 @@ class Ding(BaseChannel):
 
     @property
     def api_url(self):
-        return f"https://oapi.dingtalk.com/robot/send?access_token={self.config.token}"
+        return (
+            "https://oapi.dingtalk.com/robot/send"
+            f"?access_token={self.resolve_config_value('token')}"
+        )
 
     @property
     def headers(self):

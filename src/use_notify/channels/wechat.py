@@ -14,7 +14,10 @@ class WeChat(BaseChannel):
 
     @property
     def api_url(self):
-        return f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={self.config.token}"
+        return (
+            "https://qyapi.weixin.qq.com/cgi-bin/webhook/send"
+            f"?key={self.resolve_config_value('token')}"
+        )
 
     @property
     def headers(self):

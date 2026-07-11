@@ -20,7 +20,7 @@ class Chanify(BaseChannel):
         else:
             base_url = "https://api.chanify.net"
 
-        return f"{base_url}/v1/sender/{self.config.token}"
+        return f"{base_url}/v1/sender/{self.resolve_config_value('token')}"
 
     @property
     def headers(self):

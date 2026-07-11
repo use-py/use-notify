@@ -31,6 +31,16 @@ notify.publish(title="消息标题", content="消息正文")
 
 ```
 
+#### 动态凭据
+
+`token` 等凭据字段可以传入字符串，也可以传入无参数函数。发送时会解析函数返回值，适合把刷新、缓存逻辑放在业务侧：
+
+```python
+useNotifyChannel.Bark({"token": lambda: get_current_bark_token()})
+```
+
+库只负责发送前读取当前凭据，不内置各平台 OAuth 或后台刷新线程。
+
 #### 装饰器使用（推荐）
 
 使用 `@notify` 装饰器可以自动为函数执行发送通知：

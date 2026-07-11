@@ -155,3 +155,17 @@ useNotifyChannel.Console()
 - Use `PushOver`, not `Pushover`.
 - Use `WeChat` or `WeCom`; both resolve to the same implementation.
 - Use `base_url` for Bark, Chanify, Ntfy, and PushDeer when pointing to self-hosted endpoints.
+
+## Dynamic credentials
+
+Credential fields can be static strings or zero-argument callables. The callable
+is resolved when the channel builds the request, so application code can refresh
+or cache credentials outside `use-notify`:
+
+```python
+useNotifyChannel.Bark({"token": lambda: get_current_bark_token()})
+```
+
+This library does not implement provider-specific OAuth refresh flows, background
+refresh threads, or credential persistence. It only reads the current credential
+value before sending.

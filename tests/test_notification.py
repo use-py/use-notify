@@ -417,6 +417,12 @@ def test_notify_from_settings_builds_case_insensitive_channels():
     assert isinstance(notify_instance.channels[1], useNotifyChannel.WeCom)
 
 
+def test_notify_from_settings_preserves_callable_credentials():
+    notify_instance = useNotify.from_settings({"bark": {"token": lambda: "dynamic-token"}})
+
+    assert notify_instance.channels[0].api_url == "https://api.day.app/dynamic-token"
+
+
 def test_notify_from_settings_ignores_unregistered_module_attributes(monkeypatch):
     monkeypatch.setattr(
         notification_module.channels_models, "Ghost", useNotifyChannel.Bark, raising=False

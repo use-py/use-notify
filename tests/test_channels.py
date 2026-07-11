@@ -26,6 +26,11 @@ def _mock_async_http_response(json_data=None):
     return response
 
 
+def _credential_provider(*values):
+    values_iter = iter(values)
+    return lambda: next(values_iter)
+
+
 def test_validate_business_response_ignores_non_dict_json_payloads():
     response = _mock_sync_http_response(["ok"])
 
@@ -96,6 +101,13 @@ def test_bark_preserves_explicit_falsy_optional_values():
     }
 
 
+def test_bark_resolves_callable_token_each_time():
+    channel = useNotifyChannel.Bark({"token": _credential_provider("first", "second")})
+
+    assert channel.api_url == "https://api.day.app/first"
+    assert channel.api_url == "https://api.day.app/second"
+
+
 @patch("httpx.AsyncClient")
 @pytest.mark.asyncio
 async def test_chanify_send_async_builds_expected_request(mock_client):
@@ -142,6 +154,13 @@ def test_chanify_omits_title_when_missing():
     assert channel.build_api_body("hello") == {"text": "hello"}
 
 
+def test_chanify_resolves_callable_token_each_time():
+    channel = useNotifyChannel.Chanify({"token": _credential_provider("first", "second")})
+
+    assert channel.api_url == "https://api.chanify.net/v1/sender/first"
+    assert channel.api_url == "https://api.chanify.net/v1/sender/second"
+
+
 def test_ding_build_api_body_includes_mentions():
     channel = useNotifyChannel.Ding(
         {
@@ -163,6 +182,13 @@ def test_ding_build_api_body_includes_mentions():
             "atUserIds": ["user-1"],
         },
     }
+
+
+def test_ding_resolves_callable_token_each_time():
+    channel = useNotifyChannel.Ding({"token": _credential_provider("first", "second")})
+
+    assert channel.api_url == "https://oapi.dingtalk.com/robot/send?access_token=first"
+    assert channel.api_url == "https://oapi.dingtalk.com/robot/send?access_token=second"
 
 
 @patch("httpx.Client")
@@ -210,6 +236,13 @@ def test_feishu_build_api_body_includes_mentions():
     assert {"tag": "text", "text": "hello"} in content
     assert {"tag": "at", "user_id": "all"} in content
     assert {"tag": "at", "user_id": "ou_xxx"} in content
+
+
+def test_feishu_resolves_callable_token_each_time():
+    channel = useNotifyChannel.Feishu({"token": _credential_provider("first", "second")})
+
+    assert channel.api_url == "https://open.feishu.cn/open-apis/bot/v2/hook/first"
+    assert channel.api_url == "https://open.feishu.cn/open-apis/bot/v2/hook/second"
 
 
 @patch("httpx.Client")
@@ -270,6 +303,13 @@ def test_wechat_build_api_body_includes_mentions():
         },
         "msgtype": "markdown",
     }
+
+
+def test_wechat_resolves_callable_token_each_time():
+    channel = useNotifyChannel.WeChat({"token": _credential_provider("first", "second")})
+
+    assert channel.api_url == "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=first"
+    assert channel.api_url == "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=second"
 
 
 def test_wechat_omits_title_when_missing():
@@ -338,6 +378,13 @@ def test_ntfy_requires_topic_and_builds_payload():
         "tags": ["warning"],
         "click": "https://example.com",
     }
+
+
+def test_ntfy_resolves_callable_topic_each_time():
+    channel = useNotifyChannel.Ntfy({"topic": _credential_provider("first", "second")})
+
+    assert channel.api_url == "https://ntfy.sh/first"
+    assert channel.api_url == "https://ntfy.sh/second"
 
 
 @patch("httpx.Client")
@@ -411,6 +458,13 @@ def test_pushdeer_requires_token_for_api_url():
 
     with pytest.raises(ValueError, match="pushkey"):
         _ = channel.api_url
+
+
+def test_pushdeer_resolves_callable_token_each_time():
+    channel = useNotifyChannel.PushDeer({"token": _credential_provider("first", "second")})
+
+    assert channel._prepare_params("hello")["pushkey"] == "first"
+    assert channel._prepare_params("hello")["pushkey"] == "second"
 
 
 def test_pushdeer_api_url_uses_custom_base_url():
@@ -509,6 +563,23 @@ def test_pushover_send_builds_expected_request(mock_client):
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     response.raise_for_status.assert_called_once_with()
+
+
+def test_pushover_resolves_callable_credentials_each_time():
+    channel = useNotifyChannel.PushOver(
+        {
+            "token": _credential_provider("app-1", "app-2"),
+            "user": _credential_provider("user-1", "user-2"),
+        }
+    )
+
+    first_payload = channel.build_api_body("hello")
+    second_payload = channel.build_api_body("hello")
+
+    assert first_payload["token"] == "app-1"
+    assert first_payload["user"] == "user-1"
+    assert second_payload["token"] == "app-2"
+    assert second_payload["user"] == "user-2"
 
 
 @patch("httpx.AsyncClient")

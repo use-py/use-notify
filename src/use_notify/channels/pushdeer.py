@@ -59,7 +59,7 @@ class PushDeer(BaseChannel):
                 logger.warning(f"Invalid message type: {msg_type}, fallback to text")
             msg_type = "markdown"
 
-        params = {"pushkey": self.config.token, "text": title, "type": msg_type}
+        params = {"pushkey": self.resolve_config_value("token"), "text": title, "type": msg_type}
 
         # 根据消息类型处理内容
         if msg_type == "text":

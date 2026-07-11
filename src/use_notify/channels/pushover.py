@@ -22,8 +22,8 @@ class PushOver(BaseChannel):
 
     def build_api_body(self, content, title=None):
         return {
-            "token": self.config.token,
-            "user": self.config.user,
+            "token": self.resolve_config_value("token"),
+            "user": self.resolve_config_value("user"),
             "title": title,
             "message": content,
         }

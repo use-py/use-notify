@@ -1,6 +1,7 @@
 import asyncio
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 
 import pytest
 
@@ -13,6 +14,8 @@ from use_notify import (
     useNotify,
 )
 from use_notify.decorator import NotifyConfigError, NotifyDecorator
+from use_notify.decorator.context import ExecutionContext
+from use_notify.decorator.formatter import MessageFormatter
 from use_notify.decorator.sender import NotificationSender
 
 
@@ -48,6 +51,30 @@ class TestNotifyDecorator:
         assert "执行失败" in channel.sync_messages[0]["content"]
         assert "boom" in channel.sync_messages[0]["content"]
 
+    def test_success_notification_can_be_disabled(self):
+        channel = RecordingChannel()
+        notify_instance = useNotify([channel])
+
+        @notify(notify_instance=notify_instance, notify_on_success=False)
+        def task():
+            return "ok"
+
+        assert task() == "ok"
+        assert channel.sync_messages == []
+
+    def test_error_notification_can_be_disabled(self):
+        channel = RecordingChannel()
+        notify_instance = useNotify([channel])
+
+        @notify(notify_instance=notify_instance, notify_on_error=False)
+        def task():
+            raise RuntimeError("boom")
+
+        with pytest.raises(RuntimeError, match="boom"):
+            task()
+
+        assert channel.sync_messages == []
+
     @pytest.mark.asyncio
     async def test_async_success_sends_notification(self):
         channel = RecordingChannel()
@@ -62,6 +89,22 @@ class TestNotifyDecorator:
 
         assert result == "async-ok"
         assert "async-ok" in channel.async_messages[0]["content"]
+
+    @pytest.mark.asyncio
+    async def test_async_error_sends_notification_and_reraises(self):
+        channel = RecordingChannel()
+        notify_instance = useNotify([channel])
+
+        @notify(notify_instance=notify_instance)
+        async def task():
+            await asyncio.sleep(0)
+            raise RuntimeError("async-boom")
+
+        with pytest.raises(RuntimeError, match="async-boom"):
+            await task()
+
+        assert "执行失败" in channel.async_messages[0]["content"]
+        assert "async-boom" in channel.async_messages[0]["content"]
 
     def test_uses_default_notify_instance(self):
         channel = RecordingChannel()
@@ -121,6 +164,28 @@ class TestNotifyDecorator:
         with pytest.raises(NotifyConfigError):
             NotifyDecorator(retriable_exceptions=["bad"])
 
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"notify_instance": object()},
+            {"title": 123},
+            {"success_template": 123},
+            {"error_template": 123},
+            {"notify_on_success": "yes"},
+            {"notify_on_error": "yes"},
+            {"include_args": "yes"},
+            {"include_result": "yes"},
+            {"timeout": 0},
+            {"retry_delay": -1},
+            {"retry_backoff": 0},
+            {"retriable_exceptions": RuntimeError},
+            {"notify_on_success": False, "notify_on_error": False},
+        ],
+    )
+    def test_invalid_decorator_configuration_is_rejected(self, kwargs):
+        with pytest.raises(NotifyConfigError):
+            NotifyDecorator(**kwargs)
+
     def test_notification_failures_do_not_break_wrapped_function(self):
         channel = RecordingChannel(sync_failures=[ValueError("broken sender")])
         notify_instance = useNotify([channel])
@@ -131,6 +196,17 @@ class TestNotifyDecorator:
 
         assert task() == "business-result"
         assert len(channel.sync_messages) == 1
+
+    def test_missing_default_instance_warns_once(self, caplog):
+        @notify()
+        def task():
+            return "ok"
+
+        with caplog.at_level("WARNING"):
+            assert task() == "ok"
+            assert task() == "ok"
+
+        assert caplog.text.count("未提供 notify_instance") == 1
 
     def test_default_instance_is_isolated_per_thread(self):
         first_channel = RecordingChannel()
@@ -325,3 +401,38 @@ class TestNotifyDecorator:
         assert elapsed < 0.5, f"函数执行时间 {elapsed:.2f}s 超过预期"
         # 超时应该生效，通知发送失败
         assert len(channel.async_messages) == 0
+
+
+def test_message_formatter_includes_args_result_and_truncates_values():
+    context = ExecutionContext(
+        function_name="job",
+        start_time=datetime.now(),
+        args=("alpha",),
+        kwargs={"count": 2},
+    )
+    context.mark_success({"payload": "x" * 250})
+    formatter = MessageFormatter(
+        success_template="{function_name} {args_str} {kwargs_str} {result_str} {end_time}",
+        include_args=True,
+        include_result=True,
+    )
+
+    message = formatter.format_success_message(context)
+
+    assert message["title"] == "✅ job 执行成功"
+    assert '"alpha"' in message["content"]
+    assert '"count": 2' in message["content"]
+    assert "..." in message["content"]
+    assert "返回结果" in message["content"]
+
+
+def test_message_formatter_safe_serialize_fallbacks():
+    class BrokenRepr:
+        def __repr__(self):
+            raise RuntimeError("cannot represent")
+
+    formatter = MessageFormatter()
+
+    assert formatter._safe_serialize(None) == "None"
+    assert "object object" in formatter._safe_serialize({object(): "value"})
+    assert formatter._safe_serialize({BrokenRepr(): "value"}) == "<无法序列化>"

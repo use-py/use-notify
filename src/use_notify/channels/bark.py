@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
-import logging
-
-import httpx
-
-from .base import BaseChannel
-from .utils import validate_business_response
-
-logger = logging.getLogger(__name__)
+from .http import HttpChannel
 
 
-class Bark(BaseChannel):
+class Bark(HttpChannel):
     """Bark app 消息通知"""
+
+    payload_kind = "json"
+    provider_name = "bark"
+    success_fields = {"code": {200}}
+    success_log_message = "`bark` send successfully"
 
     @property
     def api_url(self):
@@ -41,18 +38,5 @@ class Bark(BaseChannel):
 
         return payload
 
-    def send(self, content, title=None):
-        payload = self._prepare_payload(content, title)
-        with httpx.Client() as client:
-            response = client.post(self.api_url, headers=self.headers, json=payload)
-            response.raise_for_status()
-            validate_business_response(response, "bark", {"code": {200}})
-        logger.debug("`bark` send successfully")
-
-    async def send_async(self, content, title=None):
-        payload = self._prepare_payload(content, title)
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self.api_url, headers=self.headers, json=payload)
-            response.raise_for_status()
-            validate_business_response(response, "bark", {"code": {200}})
-        logger.debug("`bark` send successfully")
+    def build_request_payload(self, content, title=None):
+        return self._prepare_payload(content, title)

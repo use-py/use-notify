@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-import logging
 from typing import Any, Dict, Optional
 
-import httpx
-
-from .base import BaseChannel
-
-logger = logging.getLogger(__name__)
+from .http import HttpChannel
 
 
-class Ntfy(BaseChannel):
+class Ntfy(HttpChannel):
     """Ntfy.sh 通知渠道"""
+
+    payload_kind = "json"
+    success_log_message = "`ntfy` send successfully"
 
     def __init__(self, config: dict):
         """
@@ -82,34 +80,5 @@ class Ntfy(BaseChannel):
 
         return payload
 
-    def send(self, content: str, title: Optional[str] = None) -> None:
-        """
-        发送通知到 ntfy.sh
-
-        Args:
-            content: 消息内容
-            title: 消息标题（可选）
-        """
-        payload = self._prepare_payload(content, title)
-
-        with httpx.Client() as client:
-            response = client.post(self.api_url, headers=self.headers, json=payload)
-            response.raise_for_status()
-
-        logger.debug("`ntfy` send successfully")
-
-    async def send_async(self, content: str, title: Optional[str] = None) -> None:
-        """
-        异步发送通知到 ntfy.sh
-
-        Args:
-            content: 消息内容
-            title: 消息标题（可选）
-        """
-        payload = self._prepare_payload(content, title)
-
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self.api_url, headers=self.headers, json=payload)
-            response.raise_for_status()
-
-        logger.debug("`ntfy` send successfully")
+    def build_request_payload(self, content: str, title: Optional[str] = None) -> Dict[str, Any]:
+        return self._prepare_payload(content, title)

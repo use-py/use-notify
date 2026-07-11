@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
-import logging
-
-import httpx
-
-from .base import BaseChannel
-from .utils import validate_business_response
-
-logger = logging.getLogger(__name__)
+from .http import HttpChannel
 
 
-class WeChat(BaseChannel):
+class WeChat(HttpChannel):
     """企业微信消息通知"""
+
+    payload_kind = "json"
+    provider_name = "wechat"
+    success_fields = {"errcode": {0}}
+    success_log_message = "`WeChat` send successfully"
 
     @property
     def api_url(self):
@@ -35,18 +33,5 @@ class WeChat(BaseChannel):
 
         return api_body
 
-    def send(self, content, title=None):
-        api_body = self.build_api_body(title, content)
-        with httpx.Client() as client:
-            response = client.post(self.api_url, json=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "wechat", {"errcode": {0}})
-        logger.debug("`WeChat` send successfully")
-
-    async def send_async(self, content, title=None):
-        api_body = self.build_api_body(title, content)
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self.api_url, json=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "wechat", {"errcode": {0}})
-        logger.debug("`WeChat` send successfully")
+    def build_request_payload(self, content, title=None):
+        return self.build_api_body(title, content)

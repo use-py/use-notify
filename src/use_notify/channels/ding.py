@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
-import logging
-
-import httpx
-
-from .base import BaseChannel
-from .utils import validate_business_response
-
-logger = logging.getLogger(__name__)
+from .http import HttpChannel
 
 
-class Ding(BaseChannel):
+class Ding(HttpChannel):
     """钉钉消息通知
     https://developers.dingtalk.com/document/app/custom-robot-access?spm=ding_open_doc.document.0.0.6d9d28e1QcCPII#topic-2026027
     """
+
+    payload_kind = "json"
+    provider_name = "ding"
+    success_fields = {"errcode": {0}}
+    success_log_message = "`钉钉` send successfully"
 
     @property
     def api_url(self):
@@ -40,18 +38,5 @@ class Ding(BaseChannel):
             api_body["at"]["atUserIds"] = self.config.at_user_ids
         return api_body
 
-    def send(self, content, title=None):
-        api_body = self.build_api_body(content, title)
-        with httpx.Client() as client:
-            response = client.post(self.api_url, json=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "ding", {"errcode": {0}})
-        logger.debug("`钉钉` send successfully")
-
-    async def send_async(self, content, title=None):
-        api_body = self.build_api_body(content, title)
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self.api_url, json=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "ding", {"errcode": {0}})
-        logger.debug("`钉钉` send successfully")
+    def build_request_payload(self, content, title=None):
+        return self.build_api_body(content, title)

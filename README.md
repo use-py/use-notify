@@ -78,7 +78,7 @@ async def async_task():
 - ✅ 默认实例机制，简化使用
 - ✅ 执行上下文信息收集
 
-> 📖 **详细文档**: [装饰器完整使用指南](docs/guide/decorator.md)
+> 📖 **详细文档**: [装饰器完整使用指南](https://github.com/use-py/use-notify/blob/main/docs/guide/decorator.md)
 
 #### 支持的消息通知渠道列表
 
@@ -118,7 +118,7 @@ class Custom(useNotifyChannel.BaseChannel):
 
 #### 文档
 
-- [装饰器完整使用指南](docs/guide/decorator.md) - 详细的装饰器功能说明和最佳实践
+- [装饰器完整使用指南](https://github.com/use-py/use-notify/blob/main/docs/guide/decorator.md) - 详细的装饰器功能说明和最佳实践
 
 #### Agent Skill
 

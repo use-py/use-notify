@@ -88,6 +88,28 @@ async def test_chanify_send_async_builds_expected_request(mock_client):
     response.raise_for_status.assert_called_once_with()
 
 
+@patch("httpx.Client")
+def test_chanify_send_builds_expected_request(mock_client):
+    response = _mock_sync_http_response({"res": 0})
+    client = mock_client.return_value.__enter__.return_value
+    client.post.return_value = response
+    channel = useNotifyChannel.Chanify(
+        {
+            "token": "token",
+            "base_url": "https://chanify.example.com/",
+        }
+    )
+
+    channel.send("hello", "title")
+
+    client.post.assert_called_once_with(
+        "https://chanify.example.com/v1/sender/token",
+        data={"text": "title\nhello"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
 def test_ding_build_api_body_includes_mentions():
     channel = useNotifyChannel.Ding(
         {
@@ -122,6 +144,24 @@ def test_ding_send_rejects_business_error_response(mock_client):
         channel.send("hello", "title")
 
 
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_ding_send_async_builds_expected_request(mock_client):
+    response = _mock_async_http_response({"errcode": 0})
+    client = mock_client.return_value.__aenter__.return_value
+    client.post = AsyncMock(return_value=response)
+    channel = useNotifyChannel.Ding({"token": "token"})
+
+    await channel.send_async("hello", "title")
+
+    client.post.assert_awaited_once_with(
+        "https://oapi.dingtalk.com/robot/send?access_token=token",
+        json={"msgtype": "markdown", "markdown": {"title": "title", "text": "hello"}, "at": {}},
+        headers={"Content-Type": "application/json"},
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
 def test_feishu_build_api_body_includes_mentions():
     channel = useNotifyChannel.Feishu(
         {
@@ -149,6 +189,34 @@ def test_feishu_send_rejects_business_error_response(mock_client):
 
     with pytest.raises(RuntimeError, match="feishu.*bad webhook"):
         channel.send("hello", "title")
+
+
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_feishu_send_async_builds_expected_request(mock_client):
+    response = _mock_async_http_response({"code": 0})
+    client = mock_client.return_value.__aenter__.return_value
+    client.post = AsyncMock(return_value=response)
+    channel = useNotifyChannel.Feishu({"token": "token"})
+
+    await channel.send_async("hello", "title")
+
+    client.post.assert_awaited_once_with(
+        "https://open.feishu.cn/open-apis/bot/v2/hook/token",
+        json={
+            "msg_type": "post",
+            "content": {
+                "post": {
+                    "zh_cn": {
+                        "title": "title",
+                        "content": [[{"tag": "text", "text": "hello"}]],
+                    }
+                }
+            },
+        },
+        headers={"Content-Type": "application/json"},
+    )
+    response.raise_for_status.assert_called_once_with()
 
 
 def test_wechat_build_api_body_includes_mentions():
@@ -183,6 +251,24 @@ def test_wechat_send_rejects_business_error_response(mock_client):
         channel.send("hello", "title")
 
 
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_wechat_send_async_builds_expected_request(mock_client):
+    response = _mock_async_http_response({"errcode": 0})
+    client = mock_client.return_value.__aenter__.return_value
+    client.post = AsyncMock(return_value=response)
+    channel = useNotifyChannel.WeChat({"token": "token"})
+
+    await channel.send_async("hello", "title")
+
+    client.post.assert_awaited_once_with(
+        "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=token",
+        json={"markdown": {"content": "## title\n\nhello"}, "msgtype": "markdown"},
+        headers={"Content-Type": "application/json"},
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
 def test_ntfy_requires_topic_and_builds_payload():
     with pytest.raises(ValueError, match="topic"):
         useNotifyChannel.Ntfy({})
@@ -213,6 +299,53 @@ def test_ntfy_requires_topic_and_builds_payload():
     }
 
 
+@patch("httpx.Client")
+def test_ntfy_send_builds_expected_request(mock_client):
+    response = _mock_sync_http_response()
+    client = mock_client.return_value.__enter__.return_value
+    client.post.return_value = response
+    channel = useNotifyChannel.Ntfy(
+        {
+            "topic": "alerts",
+            "base_url": "https://ntfy.example.com/",
+            "attach": "https://example.com/file.txt",
+            "actions": [{"action": "view", "label": "Open", "url": "https://example.com"}],
+        }
+    )
+
+    channel.send("hello", "title")
+
+    client.post.assert_called_once_with(
+        "https://ntfy.example.com/alerts",
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        json={
+            "message": "hello",
+            "title": "title",
+            "attach": "https://example.com/file.txt",
+            "actions": [{"action": "view", "label": "Open", "url": "https://example.com"}],
+        },
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_ntfy_send_async_builds_expected_request(mock_client):
+    response = _mock_async_http_response()
+    client = mock_client.return_value.__aenter__.return_value
+    client.post = AsyncMock(return_value=response)
+    channel = useNotifyChannel.Ntfy({"topic": "alerts"})
+
+    await channel.send_async("hello")
+
+    client.post.assert_awaited_once_with(
+        "https://ntfy.sh/alerts",
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        json={"message": "hello"},
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
 def test_pushdeer_prepare_params_handles_markdown_and_invalid_type(caplog):
     markdown_channel = useNotifyChannel.PushDeer({"token": "token", "type": "markdown"})
     invalid_channel = useNotifyChannel.PushDeer({"token": "token", "type": "unknown"})
@@ -230,6 +363,83 @@ def test_pushdeer_prepare_params_handles_markdown_and_invalid_type(caplog):
 
     assert params["type"] == "markdown"
     assert "Invalid message type" in caplog.text
+
+
+def test_pushdeer_requires_token_for_api_url():
+    channel = useNotifyChannel.PushDeer({})
+
+    with pytest.raises(ValueError, match="pushkey"):
+        _ = channel.api_url
+
+
+def test_pushdeer_api_url_uses_custom_base_url():
+    channel = useNotifyChannel.PushDeer(
+        {
+            "token": "token",
+            "base_url": "https://pushdeer.example.com/",
+        }
+    )
+
+    assert channel.api_url == "https://pushdeer.example.com/message/push"
+
+
+def test_pushdeer_prepare_params_handles_default_title_text_and_image():
+    default_channel = useNotifyChannel.PushDeer({"token": "token"})
+    text_channel = useNotifyChannel.PushDeer({"token": "token", "type": "text"})
+    image_channel = useNotifyChannel.PushDeer({"token": "token", "type": "image"})
+
+    assert default_channel._prepare_params("hello") == {
+        "pushkey": "token",
+        "text": "消息提醒",
+        "type": "markdown",
+        "desp": "hello",
+    }
+    assert text_channel._prepare_params("hello", "title") == {
+        "pushkey": "token",
+        "text": "hello",
+        "type": "text",
+    }
+    assert image_channel._prepare_params("https://example.com/image.png", "title") == {
+        "pushkey": "token",
+        "text": "title",
+        "type": "image",
+        "desp": "https://example.com/image.png",
+    }
+
+
+@patch("httpx.Client")
+def test_pushdeer_send_builds_expected_request(mock_client):
+    response = _mock_sync_http_response({"code": 0})
+    client = mock_client.return_value.__enter__.return_value
+    client.get.return_value = response
+    channel = useNotifyChannel.PushDeer({"token": "token", "type": "text"})
+
+    channel.send("hello", "title")
+
+    client.get.assert_called_once_with(
+        "https://api2.pushdeer.com/message/push",
+        params={"pushkey": "token", "text": "hello", "type": "text"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_pushdeer_send_async_builds_expected_request(mock_client):
+    response = _mock_async_http_response({"code": 0})
+    client = mock_client.return_value.__aenter__.return_value
+    client.get = AsyncMock(return_value=response)
+    channel = useNotifyChannel.PushDeer({"token": "token"})
+
+    await channel.send_async("hello", "title")
+
+    client.get.assert_awaited_once_with(
+        "https://api2.pushdeer.com/message/push",
+        params={"pushkey": "token", "text": "title", "type": "markdown", "desp": "hello"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    response.raise_for_status.assert_called_once_with()
 
 
 @patch("httpx.Client")
@@ -253,6 +463,24 @@ def test_pushover_send_builds_expected_request(mock_client):
     channel.send("hello", "title")
 
     client.post.assert_called_once_with(
+        "https://api.pushover.net/1/messages.json",
+        data={"token": "app", "user": "user", "title": "title", "message": "hello"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_pushover_send_async_builds_expected_request(mock_client):
+    response = _mock_async_http_response({"status": 1})
+    client = mock_client.return_value.__aenter__.return_value
+    client.post = AsyncMock(return_value=response)
+    channel = useNotifyChannel.PushOver({"token": "app", "user": "user"})
+
+    await channel.send_async("hello", "title")
+
+    client.post.assert_awaited_once_with(
         "https://api.pushover.net/1/messages.json",
         data={"token": "app", "user": "user", "title": "title", "message": "hello"},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -284,6 +512,24 @@ def test_bark_send_rejects_business_error_response(mock_client):
 
 @patch("httpx.AsyncClient")
 @pytest.mark.asyncio
+async def test_bark_send_async_builds_expected_request(mock_client):
+    response = _mock_async_http_response({"code": 200})
+    client = mock_client.return_value.__aenter__.return_value
+    client.post = AsyncMock(return_value=response)
+    channel = useNotifyChannel.Bark({"token": "token"})
+
+    await channel.send_async("hello")
+
+    client.post.assert_awaited_once_with(
+        "https://api.day.app/token",
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        json={"body": "hello"},
+    )
+    response.raise_for_status.assert_called_once_with()
+
+
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
 async def test_chanify_send_async_rejects_business_error_response(mock_client):
     response = _mock_async_http_response({"res": 1, "msg": "invalid token"})
     client = mock_client.return_value.__aenter__.return_value
@@ -298,6 +544,17 @@ def test_console_send_outputs_message(capsys):
     channel = useNotifyChannel.Console()
 
     channel.send("hello", "title")
+
+    output = capsys.readouterr().out
+    assert "title" in output
+    assert "hello" in output
+
+
+@pytest.mark.asyncio
+async def test_console_send_async_outputs_message(capsys):
+    channel = useNotifyChannel.Console()
+
+    await channel.send_async("hello", "title")
 
     output = capsys.readouterr().out
     assert "title" in output

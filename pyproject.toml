@@ -34,6 +34,7 @@ wheel-exclude = ["/SKILL.md", "/skill-references/**"]
 
 [tool.black]
 line-length = 100
+target-version = ["py38"]
 
 [tool.isort]
 profile = "black"

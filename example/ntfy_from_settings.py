@@ -2,6 +2,7 @@
 """
 使用配置字典创建 Ntfy 通知渠道的简单示例
 """
+
 from use_notify import useNotify
 
 # 基础配置

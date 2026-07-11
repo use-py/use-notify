@@ -2,6 +2,7 @@
 """
 Ntfy.sh 与 useNotify 集成使用示例
 """
+
 import asyncio
 
 from use_notify import useNotify

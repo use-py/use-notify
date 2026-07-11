@@ -4,6 +4,7 @@ import logging
 import httpx
 
 from .base import BaseChannel
+from .utils import validate_business_response
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +91,7 @@ class PushDeer(BaseChannel):
         with httpx.Client() as client:
             response = client.get(self.api_url, params=params, headers=self.headers)
             response.raise_for_status()
+            validate_business_response(response, "pushdeer", {"code": {0}})
         logger.debug("`pushdeer` send message successfully")
 
     async def send_async(self, content, title=None):
@@ -104,4 +106,5 @@ class PushDeer(BaseChannel):
         async with httpx.AsyncClient() as client:
             response = await client.get(self.api_url, params=params, headers=self.headers)
             response.raise_for_status()
+            validate_business_response(response, "pushdeer", {"code": {0}})
         logger.debug("`pushdeer` send message successfully")

@@ -5,15 +5,23 @@ import pytest
 from use_notify import useNotifyChannel
 
 
-def _mock_sync_http_response():
+def _mock_sync_http_response(json_data=None):
     response = MagicMock()
     response.raise_for_status = MagicMock()
+    if json_data is not None:
+        response.json.return_value = json_data
+    else:
+        response.json.side_effect = ValueError("response body is not JSON")
     return response
 
 
-def _mock_async_http_response():
+def _mock_async_http_response(json_data=None):
     response = MagicMock()
     response.raise_for_status = MagicMock()
+    if json_data is not None:
+        response.json.return_value = json_data
+    else:
+        response.json.side_effect = ValueError("response body is not JSON")
     return response
 
 
@@ -85,6 +93,17 @@ def test_ding_build_api_body_includes_mentions():
     }
 
 
+@patch("httpx.Client")
+def test_ding_send_rejects_business_error_response(mock_client):
+    response = _mock_sync_http_response({"errcode": 310000, "errmsg": "invalid token"})
+    client = mock_client.return_value.__enter__.return_value
+    client.post.return_value = response
+    channel = useNotifyChannel.Ding({"token": "token"})
+
+    with pytest.raises(RuntimeError, match="ding.*invalid token"):
+        channel.send("hello", "title")
+
+
 def test_feishu_build_api_body_includes_mentions():
     channel = useNotifyChannel.Feishu(
         {
@@ -101,6 +120,17 @@ def test_feishu_build_api_body_includes_mentions():
     assert {"tag": "text", "text": "hello"} in content
     assert {"tag": "at", "user_id": "all"} in content
     assert {"tag": "at", "user_id": "ou_xxx"} in content
+
+
+@patch("httpx.Client")
+def test_feishu_send_rejects_business_error_response(mock_client):
+    response = _mock_sync_http_response({"code": 9499, "msg": "bad webhook"})
+    client = mock_client.return_value.__enter__.return_value
+    client.post.return_value = response
+    channel = useNotifyChannel.Feishu({"token": "token"})
+
+    with pytest.raises(RuntimeError, match="feishu.*bad webhook"):
+        channel.send("hello", "title")
 
 
 def test_wechat_build_api_body_includes_mentions():
@@ -122,6 +152,17 @@ def test_wechat_build_api_body_includes_mentions():
         },
         "msgtype": "markdown",
     }
+
+
+@patch("httpx.Client")
+def test_wechat_send_rejects_business_error_response(mock_client):
+    response = _mock_sync_http_response({"errcode": 40001, "errmsg": "invalid credential"})
+    client = mock_client.return_value.__enter__.return_value
+    client.post.return_value = response
+    channel = useNotifyChannel.WeChat({"token": "token"})
+
+    with pytest.raises(RuntimeError, match="wechat.*invalid credential"):
+        channel.send("hello", "title")
 
 
 def test_ntfy_requires_topic_and_builds_payload():
@@ -167,6 +208,17 @@ def test_pushdeer_prepare_params_handles_markdown_and_invalid_type(caplog):
 
 
 @patch("httpx.Client")
+def test_pushdeer_send_rejects_business_error_response(mock_client):
+    response = _mock_sync_http_response({"code": 80403, "error": "pushkey invalid"})
+    client = mock_client.return_value.__enter__.return_value
+    client.get.return_value = response
+    channel = useNotifyChannel.PushDeer({"token": "token"})
+
+    with pytest.raises(RuntimeError, match="pushdeer.*pushkey invalid"):
+        channel.send("hello", "title")
+
+
+@patch("httpx.Client")
 def test_pushover_send_builds_expected_request(mock_client):
     response = _mock_sync_http_response()
     client = mock_client.return_value.__enter__.return_value
@@ -181,6 +233,40 @@ def test_pushover_send_builds_expected_request(mock_client):
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     response.raise_for_status.assert_called_once_with()
+
+
+@patch("httpx.Client")
+def test_pushover_send_rejects_business_error_response(mock_client):
+    response = _mock_sync_http_response({"status": 0, "errors": ["bad user"]})
+    client = mock_client.return_value.__enter__.return_value
+    client.post.return_value = response
+    channel = useNotifyChannel.PushOver({"token": "app", "user": "user"})
+
+    with pytest.raises(RuntimeError, match="pushover.*bad user"):
+        channel.send("hello", "title")
+
+
+@patch("httpx.Client")
+def test_bark_send_rejects_business_error_response(mock_client):
+    response = _mock_sync_http_response({"code": 400, "message": "bad device token"})
+    client = mock_client.return_value.__enter__.return_value
+    client.post.return_value = response
+    channel = useNotifyChannel.Bark({"token": "token"})
+
+    with pytest.raises(RuntimeError, match="bark.*bad device token"):
+        channel.send("hello", "title")
+
+
+@patch("httpx.AsyncClient")
+@pytest.mark.asyncio
+async def test_chanify_send_async_rejects_business_error_response(mock_client):
+    response = _mock_async_http_response({"res": 1, "msg": "invalid token"})
+    client = mock_client.return_value.__aenter__.return_value
+    client.post = AsyncMock(return_value=response)
+    channel = useNotifyChannel.Chanify({"token": "token"})
+
+    with pytest.raises(RuntimeError, match="chanify.*invalid token"):
+        await channel.send_async("hello", "title")
 
 
 def test_console_send_outputs_message(capsys):

@@ -13,6 +13,10 @@ format: ## Formasts you code with Black
 test:
 	uv run --group dev pytest -v tests
 
+coverage:
+	uv run --group dev coverage run --branch --source=src/use_notify -m pytest -q tests
+	uv run --group dev coverage report -m
+
 publish:
 	uv build
 	uv publish

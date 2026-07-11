@@ -15,6 +15,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "black",
+    "coverage>=7.6.1",
     "flake8",
     "isort",
     "pre-commit",

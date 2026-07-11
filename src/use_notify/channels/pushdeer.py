@@ -13,14 +13,14 @@ class PushDeer(BaseChannel):
     """pushdeer app 消息通知
 
     支持三种消息类型:
-    - text: 纯文本消息 (默认)
+    - text: 纯文本消息
     - image: 图片消息
-    - markdown: Markdown格式消息
+    - markdown: Markdown格式消息 (默认)
 
     配置参数:
     - token: PushDeer的pushkey
     - base_url: 可选，自建PushDeer服务的URL，默认为"https://api2.pushdeer.com"
-    - type: 可选，消息类型，可选值为text、markdown、image，默认为text
+    - type: 可选，消息类型，可选值为text、markdown、image，默认为markdown
     """
 
     @property

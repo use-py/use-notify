@@ -183,18 +183,31 @@ def test_redacts_custom_base_url_path_secrets():
     message = (
         "failed https://bark.example.com/bark-secret-token "
         "and https://ntfy.example.com/my-secret-topic"
+        " and https://notify.example.com/abc123def456ghi7"
     )
 
     redacted = redact_text(message)
 
     assert "bark-secret-token" not in redacted
     assert "my-secret-topic" not in redacted
+    assert "abc123def456ghi7" not in redacted
     assert "https://bark.example.com/<redacted>" in redacted
     assert "https://ntfy.example.com/<redacted>" in redacted
+    assert "https://notify.example.com/<redacted>" in redacted
 
 
 def test_redaction_keeps_multi_segment_urls_visible():
     message = "docs https://example.com/path/to/page"
+
+    assert redact_text(message) == message
+
+
+def test_redaction_keeps_ordinary_single_segment_urls_visible():
+    message = (
+        "docs https://example.com/docs "
+        "and status https://status.example.com/health "
+        "and keyboard https://example.com/keyboard"
+    )
 
     assert redact_text(message) == message
 

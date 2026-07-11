@@ -36,7 +36,7 @@ class Bark(BaseChannel):
 
         # Optional parameters from config
         for param in ["badge", "sound", "icon", "group", "url"]:
-            if hasattr(self.config, param) and getattr(self.config, param) is not None:
+            if param in self.config and getattr(self.config, param) is not None:
                 payload[param] = getattr(self.config, param)
 
         return payload

@@ -1,6 +1,6 @@
 # HTTP Channel Transport Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Share sync and async HTTP transport logic across HTTP-backed notification channels without changing the public API.
 
@@ -50,7 +50,7 @@
 - Create: `src/use_notify/channels/http.py`
 - Modify: `tests/test_channels.py`
 
-- [ ] **Step 1: Write tests for unsupported transport configuration**
+- [x] **Step 1: Write tests for unsupported transport configuration**
 
 Add these imports near the top of `tests/test_channels.py`:
 
@@ -105,7 +105,7 @@ def test_http_channel_rejects_unsupported_payload_kind():
         channel.send("hello")
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run:
 
@@ -115,7 +115,7 @@ uv run --group dev pytest tests/test_channels.py::test_http_channel_rejects_unsu
 
 Expected: import failure because `use_notify.channels.http` does not exist.
 
-- [ ] **Step 3: Create `HttpChannel`**
+- [x] **Step 3: Create `HttpChannel`**
 
 Create `src/use_notify/channels/http.py`:
 
@@ -197,7 +197,7 @@ class HttpChannel(BaseChannel):
             logger.debug(self.success_log_message)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run:
 
@@ -207,7 +207,7 @@ uv run --group dev pytest tests/test_channels.py::test_http_channel_rejects_unsu
 
 Expected: `2 passed`.
 
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 5: Commit Task 1**
 
 Run:
 
@@ -225,7 +225,7 @@ git commit -m "refactor: add shared http channel transport"
 - Modify: `src/use_notify/channels/wechat.py`
 - Modify: `src/use_notify/channels/ntfy.py`
 
-- [ ] **Step 1: Migrate Bark**
+- [x] **Step 1: Migrate Bark**
 
 Replace `import httpx`, `from .base import BaseChannel`, and `from .utils import validate_business_response` with:
 
@@ -254,7 +254,7 @@ Add:
 
 Remove the custom `send(...)` and `send_async(...)` methods.
 
-- [ ] **Step 2: Migrate Ding**
+- [x] **Step 2: Migrate Ding**
 
 Replace HTTP imports with:
 
@@ -285,7 +285,7 @@ Add:
 
 Remove custom `send(...)` and `send_async(...)`.
 
-- [ ] **Step 3: Migrate Feishu**
+- [x] **Step 3: Migrate Feishu**
 
 Replace HTTP imports with:
 
@@ -316,7 +316,7 @@ Add:
 
 Remove custom `send(...)` and `send_async(...)`.
 
-- [ ] **Step 4: Migrate WeChat**
+- [x] **Step 4: Migrate WeChat**
 
 Replace HTTP imports with:
 
@@ -345,7 +345,7 @@ Add:
 
 Remove custom `send(...)` and `send_async(...)`.
 
-- [ ] **Step 5: Migrate Ntfy**
+- [x] **Step 5: Migrate Ntfy**
 
 Replace `import httpx` and `from .base import BaseChannel` with:
 
@@ -372,7 +372,7 @@ Add:
 
 Remove custom `send(...)` and `send_async(...)`. Do not add `success_fields`; Ntfy only checks HTTP status.
 
-- [ ] **Step 6: Run focused tests**
+- [x] **Step 6: Run focused tests**
 
 Run:
 
@@ -382,7 +382,7 @@ uv run --group dev pytest tests/test_channels.py -q
 
 Expected: all channel tests pass.
 
-- [ ] **Step 7: Commit Task 2**
+- [x] **Step 7: Commit Task 2**
 
 Run:
 
@@ -398,7 +398,7 @@ git commit -m "refactor: migrate json http channels"
 - Modify: `src/use_notify/channels/pushover.py`
 - Modify: `src/use_notify/channels/pushdeer.py`
 
-- [ ] **Step 1: Migrate Chanify**
+- [x] **Step 1: Migrate Chanify**
 
 Replace HTTP imports with:
 
@@ -427,7 +427,7 @@ Add:
 
 Remove custom `send(...)` and `send_async(...)`.
 
-- [ ] **Step 2: Migrate PushOver**
+- [x] **Step 2: Migrate PushOver**
 
 Replace HTTP imports with:
 
@@ -456,7 +456,7 @@ Add:
 
 Remove custom `send(...)` and `send_async(...)`.
 
-- [ ] **Step 3: Migrate PushDeer**
+- [x] **Step 3: Migrate PushDeer**
 
 Replace HTTP imports with:
 
@@ -497,7 +497,7 @@ Add:
 
 Remove custom `send(...)` and `send_async(...)`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run:
 
@@ -507,7 +507,7 @@ uv run --group dev pytest tests/test_channels.py -q
 
 Expected: all channel tests pass.
 
-- [ ] **Step 5: Commit Task 3**
+- [x] **Step 5: Commit Task 3**
 
 Run:
 
@@ -521,7 +521,7 @@ git commit -m "refactor: migrate form and params http channels"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-07-11-http-channel-transport.md` only if checkbox tracking is updated.
 
-- [ ] **Step 1: Run lint**
+- [x] **Step 1: Run lint**
 
 Run:
 
@@ -531,7 +531,7 @@ make lint
 
 Expected: isort, black, and flake8 all pass.
 
-- [ ] **Step 2: Run tests**
+- [x] **Step 2: Run tests**
 
 Run:
 
@@ -541,7 +541,7 @@ make test
 
 Expected: `126 passed` plus any new tests added in Task 1.
 
-- [ ] **Step 3: Run coverage**
+- [x] **Step 3: Run coverage**
 
 Run:
 
@@ -551,7 +551,7 @@ make coverage
 
 Expected: total coverage remains at or above 95%.
 
-- [ ] **Step 4: Inspect final diff**
+- [x] **Step 4: Inspect final diff**
 
 Run:
 
@@ -562,7 +562,7 @@ git diff origin/main...HEAD -- src/use_notify/channels tests/test_channels.py
 
 Expected: diff shows the new HTTP transport and migrated channel classes without public API changes.
 
-- [ ] **Step 5: Push branch and open PR**
+- [x] **Step 5: Push branch and open PR**
 
 Run:
 

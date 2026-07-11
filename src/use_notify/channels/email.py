@@ -6,6 +6,8 @@ from email.header import Header
 from email.mime.text import MIMEText
 from functools import partial
 
+from use_notify._validation import is_int_like
+
 from .base import BaseChannel
 
 logger = logging.getLogger(__name__)
@@ -28,7 +30,9 @@ class Email(BaseChannel):
                 missing_fields.append(field)
 
         # 单独校验端口号
-        if not self.config.port and not isinstance(self.config.port, int):
+        if isinstance(self.config.port, bool):
+            raise ValueError("端口号必须为有效的整数")
+        if not self.config.port and not is_int_like(self.config.port):
             missing_fields.append("port")
 
         if missing_fields:

@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Type, TypeVar
 import httpx
 
 from use_notify import channels as channels_models
+from use_notify._validation import is_int_like, is_number_like
 from use_notify.redaction import redact_exception_message, redact_text
 
 logger = logging.getLogger(__name__)
@@ -32,11 +33,11 @@ class RetryConfig:
     retriable_exceptions: RetriableExceptions = DEFAULT_RETRIABLE_EXCEPTIONS
 
     def __post_init__(self):
-        if self.max_retries < 0:
+        if not is_int_like(self.max_retries) or self.max_retries < 0:
             raise ValueError("max_retries must be >= 0")
-        if self.retry_delay < 0:
+        if not is_number_like(self.retry_delay) or self.retry_delay < 0:
             raise ValueError("retry_delay must be >= 0")
-        if self.retry_backoff <= 0:
+        if not is_number_like(self.retry_backoff) or self.retry_backoff <= 0:
             raise ValueError("retry_backoff must be > 0")
 
         try:

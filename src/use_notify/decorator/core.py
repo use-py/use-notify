@@ -11,6 +11,8 @@ from contextvars import ContextVar
 from datetime import datetime
 from typing import Callable, Optional, Sequence, Type
 
+from use_notify._validation import is_int_like, is_number_like
+
 from ..notification import Notify
 from .context import ExecutionContext
 from .exceptions import NotifyConfigError
@@ -330,20 +332,16 @@ class NotifyDecorator:
         if not isinstance(include_result, bool):
             raise NotifyConfigError("include_result 必须是布尔值")
 
-        if timeout is not None and (not isinstance(timeout, (int, float)) or timeout <= 0):
+        if timeout is not None and (not is_number_like(timeout) or timeout <= 0):
             raise NotifyConfigError("timeout 必须是正数")
 
-        if max_retries is not None and (not isinstance(max_retries, int) or max_retries < 0):
+        if max_retries is not None and (not is_int_like(max_retries) or max_retries < 0):
             raise NotifyConfigError("max_retries 必须是大于等于 0 的整数")
 
-        if retry_delay is not None and (
-            not isinstance(retry_delay, (int, float)) or retry_delay < 0
-        ):
+        if retry_delay is not None and (not is_number_like(retry_delay) or retry_delay < 0):
             raise NotifyConfigError("retry_delay 必须是大于等于 0 的数字")
 
-        if retry_backoff is not None and (
-            not isinstance(retry_backoff, (int, float)) or retry_backoff <= 0
-        ):
+        if retry_backoff is not None and (not is_number_like(retry_backoff) or retry_backoff <= 0):
             raise NotifyConfigError("retry_backoff 必须是正数")
 
         if retriable_exceptions is not None:

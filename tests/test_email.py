@@ -31,6 +31,10 @@ def test_email_validates_required_fields():
     with pytest.raises(ValueError, match="端口号必须为有效的整数"):
         useNotifyChannel.Email({**EMAIL_CONFIG, "port": "bad-port"})
 
+    for port in (True, False):
+        with pytest.raises(ValueError, match="端口号必须为有效的整数"):
+            useNotifyChannel.Email({**EMAIL_CONFIG, "port": port})
+
 
 @patch("smtplib.SMTP_SSL")
 def test_email_send_uses_ssl_sendmail_and_quits(mock_smtp_ssl):

@@ -6,13 +6,9 @@ from .decorator import (
     notify,
     set_default_notify_instance,
 )
-from .notification import (
-    NotificationPublishError,
-)
+from .notification import NotificationPublishError
 from .notification import Notify as useNotify
-from .notification import (
-    RetryConfig,
-)
+from .notification import RetryConfig
 
 __all__ = [
     "useNotifyChannel",

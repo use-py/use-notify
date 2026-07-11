@@ -4,6 +4,7 @@ import logging
 import httpx
 
 from .base import BaseChannel
+from .utils import validate_business_response
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class Bark(BaseChannel):
         with httpx.Client() as client:
             response = client.post(self.api_url, headers=self.headers, json=payload)
             response.raise_for_status()
+            validate_business_response(response, "bark", {"code": {200}})
         logger.debug("`bark` send successfully")
 
     async def send_async(self, content, title=None):
@@ -52,4 +54,5 @@ class Bark(BaseChannel):
         async with httpx.AsyncClient() as client:
             response = await client.post(self.api_url, headers=self.headers, json=payload)
             response.raise_for_status()
+            validate_business_response(response, "bark", {"code": {200}})
         logger.debug("`bark` send successfully")

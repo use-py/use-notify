@@ -1,4 +1,5 @@
 import asyncio
+import smtplib
 import threading
 
 import httpx
@@ -45,6 +46,17 @@ def test_publisher_add_and_publish_across_channels():
 
     assert first.sync_messages == [{"content": "hello", "title": "world"}]
     assert second.sync_messages == [{"content": "hello", "title": "world"}]
+
+
+def test_publisher_add_without_channels_is_noop():
+    first = RecordingChannel()
+    publisher = Publisher([first])
+
+    publisher.add()
+    publisher.publish("hello")
+
+    assert publisher.channels == (first,)
+    assert first.sync_messages == [{"content": "hello", "title": None}]
 
 
 @pytest.mark.asyncio
@@ -122,6 +134,35 @@ def test_publisher_retries_http_429_and_eventually_succeeds():
     assert len(channel.sync_messages) == 2
 
 
+def test_publisher_does_not_retry_http_400():
+    channel = RecordingChannel(sync_failures=[make_http_status_error(400)])
+    publisher = Publisher([channel], max_retries=3)
+
+    with pytest.raises(httpx.HTTPStatusError, match="status 400"):
+        publisher.publish("hello")
+
+    assert len(channel.sync_messages) == 1
+
+
+def test_publisher_classifies_provider_specific_retry_exceptions():
+    publisher = Publisher()
+
+    assert publisher._is_retriable_exception(make_http_status_error(408), publisher.retry_config)
+    assert publisher._is_retriable_exception(httpx.ConnectError("network"), publisher.retry_config)
+    assert publisher._is_retriable_exception(
+        smtplib.SMTPResponseException(450, b"mailbox unavailable"),
+        publisher.retry_config,
+    )
+    assert not publisher._is_retriable_exception(
+        smtplib.SMTPAuthenticationError(535, b"auth failed"),
+        publisher.retry_config,
+    )
+    assert not publisher._is_retriable_exception(
+        smtplib.SMTPResponseException(550, b"mailbox unavailable"),
+        publisher.retry_config,
+    )
+
+
 def test_publisher_aggregates_failures_after_other_channels_continue():
     failing_one = RecordingChannel(sync_failures=[TimeoutError("one"), TimeoutError("one")])
     failing_two = RecordingChannel(sync_failures=[TimeoutError("two"), TimeoutError("two")])
@@ -132,6 +173,20 @@ def test_publisher_aggregates_failures_after_other_channels_continue():
         publisher.publish("hello")
 
     assert len(healthy.sync_messages) == 1
+    assert len(error_info.value.failures) == 2
+
+
+@pytest.mark.asyncio
+async def test_publisher_aggregates_async_failures_after_other_channels_continue():
+    failing_one = RecordingChannel(async_failures=[httpx.ConnectError("one")])
+    failing_two = RecordingChannel(async_failures=[httpx.ConnectError("two")])
+    healthy = RecordingChannel()
+    publisher = Publisher([failing_one, healthy, failing_two])
+
+    with pytest.raises(NotificationPublishError) as error_info:
+        await publisher.publish_async("hello")
+
+    assert len(healthy.async_messages) == 1
     assert len(error_info.value.failures) == 2
 
 
@@ -331,6 +386,9 @@ def test_configure_retry_returns_self_and_updates_policy():
 def test_retry_config_validates_exception_types():
     with pytest.raises(ValueError, match="exception types"):
         RetryConfig(retriable_exceptions=("invalid",))
+
+    with pytest.raises(ValueError, match="exception types"):
+        RetryConfig(retriable_exceptions=RuntimeError)
 
 
 @pytest.mark.parametrize(

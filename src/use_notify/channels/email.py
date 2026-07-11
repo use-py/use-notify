@@ -67,7 +67,7 @@ class Email(BaseChannel):
 
     async def send_async(self, content, title=None):
         if not self.config.to_emails:
-            logger.error("请先设置接收邮箱<receivers>")
+            logger.error("请先设置接收邮箱<to_emails>")
             return
         message = self.build_message(content, title)
 

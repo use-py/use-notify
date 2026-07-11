@@ -5,10 +5,9 @@ import httpx
 import pytest
 
 import use_notify.notification as notification_module
+from tests.helpers import RecordingChannel, make_http_status_error
 from use_notify import NotificationPublishError, useNotify, useNotifyChannel
 from use_notify.notification import Publisher, RetryConfig
-
-from tests.helpers import RecordingChannel, make_http_status_error
 
 
 class BlockingSyncChannel(RecordingChannel):
@@ -172,9 +171,7 @@ async def test_publisher_add_does_not_affect_in_flight_async_publish():
 
 
 def test_configure_retry_does_not_affect_in_flight_publish(monkeypatch):
-    channel = RecordingChannel(
-        sync_failures=[RuntimeError("temporary"), RuntimeError("temporary")]
-    )
+    channel = RecordingChannel(sync_failures=[RuntimeError("temporary"), RuntimeError("temporary")])
     publisher = Publisher(
         [channel],
         max_retries=2,

@@ -18,7 +18,7 @@ class Bark(BaseChannel):
             base_url = self.config.base_url.rstrip("/")
         else:
             base_url = "https://api.day.app"
-        
+
         return f"{base_url}/{self.config.token}"
 
     @property
@@ -29,15 +29,15 @@ class Bark(BaseChannel):
         payload = {
             "body": content,
         }
-        
+
         if title:
             payload["title"] = title
-            
+
         # Optional parameters from config
         for param in ["badge", "sound", "icon", "group", "url"]:
             if hasattr(self.config, param) and getattr(self.config, param) is not None:
                 payload[param] = getattr(self.config, param)
-                
+
         return payload
 
     def send(self, content, title=None):

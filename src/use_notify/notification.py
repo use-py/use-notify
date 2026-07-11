@@ -8,8 +8,8 @@ from threading import RLock
 from typing import List, Optional, Tuple, Type, TypeVar
 
 import httpx
-from use_notify import channels as channels_models
 
+from use_notify import channels as channels_models
 
 logger = logging.getLogger(__name__)
 RetriableExceptions = Tuple[Type[BaseException], ...]
@@ -40,13 +40,10 @@ class RetryConfig:
         invalid_exceptions = [
             exception_type
             for exception_type in self.retriable_exceptions
-            if not isinstance(exception_type, type)
-            or not issubclass(exception_type, BaseException)
+            if not isinstance(exception_type, type) or not issubclass(exception_type, BaseException)
         ]
         if invalid_exceptions:
-            raise ValueError(
-                "retriable_exceptions must only contain exception types"
-            )
+            raise ValueError("retriable_exceptions must only contain exception types")
 
 
 class NotificationPublishError(RuntimeError):
@@ -54,9 +51,7 @@ class NotificationPublishError(RuntimeError):
 
     def __init__(self, failures: List[Tuple[str, Exception]]):
         self.failures = failures
-        failure_summary = ", ".join(
-            f"{channel_name}: {error}" for channel_name, error in failures
-        )
+        failure_summary = ", ".join(f"{channel_name}: {error}" for channel_name, error in failures)
         super().__init__(f"Failed to publish notification via: {failure_summary}")
 
 
@@ -178,9 +173,7 @@ class Publisher:
                     time.sleep(delay)
                 delay *= retry_config.retry_backoff
 
-    async def _send_with_retry_async(
-        self, channel, retry_config: RetryConfig, *args, **kwargs
-    ):
+    async def _send_with_retry_async(self, channel, retry_config: RetryConfig, *args, **kwargs):
         max_attempts = retry_config.max_retries + 1
         delay = retry_config.retry_delay
 
@@ -234,9 +227,7 @@ class Publisher:
             raise failures[0][1]
         raise NotificationPublishError(failures)
 
-    def _is_retriable_exception(
-        self, error: Exception, retry_config: RetryConfig
-    ) -> bool:
+    def _is_retriable_exception(self, error: Exception, retry_config: RetryConfig) -> bool:
         if isinstance(error, httpx.HTTPStatusError):
             if error.response is None:
                 return False

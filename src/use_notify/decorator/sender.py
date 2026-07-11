@@ -5,11 +5,11 @@
 
 import asyncio
 import logging
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Optional
 
 from ..notification import Notify
-
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +17,7 @@ logger = logging.getLogger(__name__)
 class NotificationSender:
     """通知发送器"""
 
-    def __init__(
-        self,
-        notify_instance: Notify,
-        timeout: Optional[float] = None
-    ):
+    def __init__(self, notify_instance: Notify, timeout: Optional[float] = None):
         self.notify_instance = notify_instance
         self.timeout = timeout
 
@@ -57,8 +53,7 @@ class NotificationSender:
         try:
             if self.timeout:
                 await asyncio.wait_for(
-                    self._send_async_internal(title, content),
-                    timeout=self.timeout
+                    self._send_async_internal(title, content), timeout=self.timeout
                 )
             else:
                 await self._send_async_internal(title, content)

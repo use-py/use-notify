@@ -280,12 +280,7 @@ class Notify(Publisher):
         """
         channels = []
         for channel, cfg in settings.items():
-            # Try to get class by case-insensitive match
-            channel_cls = None
-            for cls_name in dir(channels_models):
-                if cls_name.lower() == channel.lower():
-                    channel_cls = getattr(channels_models, cls_name)
-                    break
+            channel_cls = channels_models.get_channel_class(channel)
             if not channel_cls:
                 raise ValueError(f"Unknown channel {channel}")
             channel = channel_cls(cfg)

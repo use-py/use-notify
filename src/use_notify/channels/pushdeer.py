@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 
-import httpx
-
-from .base import BaseChannel
-from .utils import validate_business_response
+from .http import HttpChannel
 
 logger = logging.getLogger(__name__)
 
 
-class PushDeer(BaseChannel):
+class PushDeer(HttpChannel):
     """pushdeer app 消息通知
 
     支持三种消息类型:
@@ -22,6 +19,12 @@ class PushDeer(BaseChannel):
     - base_url: 可选，自建PushDeer服务的URL，默认为"https://api2.pushdeer.com"
     - type: 可选，消息类型，可选值为text、markdown、image，默认为markdown
     """
+
+    request_method = "GET"
+    payload_kind = "params"
+    provider_name = "pushdeer"
+    success_fields = {"code": {0}}
+    success_log_message = "`pushdeer` send message successfully"
 
     @property
     def api_url(self):
@@ -74,37 +77,10 @@ class PushDeer(BaseChannel):
 
         return params
 
+    def build_request_payload(self, content, title=None):
+        return self._prepare_params(content, title)
+
     @property
     def headers(self):
         """请求头"""
         return {"Content-Type": "application/x-www-form-urlencoded"}
-
-    def send(self, content, title=None):
-        """发送PushDeer消息
-
-        Args:
-            content: 消息内容
-            title: 消息标题
-        """
-        params = self._prepare_params(content, title)
-
-        with httpx.Client() as client:
-            response = client.get(self.api_url, params=params, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "pushdeer", {"code": {0}})
-        logger.debug("`pushdeer` send message successfully")
-
-    async def send_async(self, content, title=None):
-        """异步发送PushDeer消息
-
-        Args:
-            content: 消息内容
-            title: 消息标题
-        """
-        params = self._prepare_params(content, title)
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(self.api_url, params=params, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "pushdeer", {"code": {0}})
-        logger.debug("`pushdeer` send message successfully")

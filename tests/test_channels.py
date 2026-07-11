@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from use_notify import useNotifyChannel
+from use_notify.channels.http import HttpChannel
 from use_notify.channels.utils import ProviderResponseError, validate_business_response
 
 
@@ -29,6 +30,58 @@ def _mock_async_http_response(json_data=None):
 def _credential_provider(*values):
     values_iter = iter(values)
     return lambda: next(values_iter)
+
+
+class UnsupportedMethodChannel(HttpChannel):
+    request_method = "PATCH"
+
+    @property
+    def api_url(self):
+        return "https://example.com"
+
+    @property
+    def headers(self):
+        return {}
+
+    def build_request_payload(self, content, title=None):
+        return {"message": content}
+
+
+class UnsupportedPayloadChannel(HttpChannel):
+    payload_kind = "body"
+
+    @property
+    def api_url(self):
+        return "https://example.com"
+
+    @property
+    def headers(self):
+        return {}
+
+    def build_request_payload(self, content, title=None):
+        return {"message": content}
+
+
+def test_http_channel_rejects_unsupported_method():
+    channel = UnsupportedMethodChannel({})
+
+    with pytest.raises(ValueError, match="Unsupported HTTP method"):
+        channel.send("hello")
+
+
+def test_http_channel_rejects_unsupported_payload_kind():
+    channel = UnsupportedPayloadChannel({})
+
+    with pytest.raises(ValueError, match="Unsupported HTTP payload kind"):
+        channel.send("hello")
+
+
+@pytest.mark.asyncio
+async def test_http_channel_async_rejects_unsupported_method():
+    channel = UnsupportedMethodChannel({})
+
+    with pytest.raises(ValueError, match="Unsupported HTTP method"):
+        await channel.send_async("hello")
 
 
 def test_validate_business_response_ignores_non_dict_json_payloads():

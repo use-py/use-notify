@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
-import logging
-
-import httpx
-
-from .base import BaseChannel
-from .utils import validate_business_response
-
-logger = logging.getLogger(__name__)
+from .http import HttpChannel
 
 
-class PushOver(BaseChannel):
+class PushOver(HttpChannel):
     """pushover app 消息通知"""
+
+    payload_kind = "data"
+    provider_name = "pushover"
+    success_fields = {"status": {1}}
+    success_log_message = "`pushover` send successfully"
 
     @property
     def api_url(self):
@@ -28,18 +25,5 @@ class PushOver(BaseChannel):
             "message": content,
         }
 
-    def send(self, content, title=None):
-        api_body = self.build_api_body(content, title)
-        with httpx.Client() as client:
-            response = client.post(self.api_url, data=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "pushover", {"status": {1}})
-        logger.debug("`pushover` send successfully")
-
-    async def send_async(self, content, title=None):
-        api_body = self.build_api_body(content, title)
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self.api_url, data=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "pushover", {"status": {1}})
-        logger.debug("`pushover` send successfully")
+    def build_request_payload(self, content, title=None):
+        return self.build_api_body(content, title)

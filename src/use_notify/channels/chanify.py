@@ -28,7 +28,8 @@ class Chanify(BaseChannel):
 
     @staticmethod
     def build_api_body(content, title=None):
-        return {"text": f"{title}\n{content}"}
+        text = f"{title}\n{content}" if title else content
+        return {"text": text}
 
     def send(self, content, title=None):
         api_body = self.build_api_body(content, title)

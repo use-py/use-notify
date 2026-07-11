@@ -109,6 +109,50 @@ def test_publisher_aggregates_failures_after_other_channels_continue():
     assert len(error_info.value.failures) == 2
 
 
+def test_single_channel_failure_redacts_secret_from_exception_message():
+    request = httpx.Request(
+        "POST",
+        "https://oapi.dingtalk.com/robot/send?access_token=ding-secret-token",
+    )
+    response = httpx.Response(500, request=request)
+    channel_error = httpx.HTTPStatusError(
+        "request failed for " "https://oapi.dingtalk.com/robot/send?access_token=ding-secret-token",
+        request=request,
+        response=response,
+    )
+    channel = RecordingChannel(sync_failures=[channel_error])
+    publisher = Publisher([channel])
+
+    with pytest.raises(httpx.HTTPStatusError) as error_info:
+        publisher.publish("hello")
+
+    message = str(error_info.value)
+    assert "ding-secret-token" not in message
+    assert "access_token=<redacted>" in message
+
+
+def test_aggregate_failure_redacts_secrets_from_exception_message():
+    failing_one = RecordingChannel(
+        sync_failures=[RuntimeError("failed https://api.day.app/bark-secret-token")]
+    )
+    failing_two = RecordingChannel(
+        sync_failures=[
+            RuntimeError(
+                "failed https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=wechat-secret-token"
+            )
+        ]
+    )
+    publisher = Publisher([failing_one, failing_two])
+
+    with pytest.raises(NotificationPublishError) as error_info:
+        publisher.publish("hello")
+
+    message = str(error_info.value)
+    assert "bark-secret-token" not in message
+    assert "wechat-secret-token" not in message
+    assert "<redacted>" in message
+
+
 def test_publisher_copies_initial_channel_collection():
     initial_channels = [RecordingChannel()]
     publisher = Publisher(initial_channels)

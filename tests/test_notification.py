@@ -320,6 +320,19 @@ def test_retry_config_validates_exception_types():
         RetryConfig(retriable_exceptions=("invalid",))
 
 
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"max_retries": True},
+        {"retry_delay": False},
+        {"retry_backoff": True},
+    ],
+)
+def test_retry_config_rejects_bool_numeric_values(kwargs):
+    with pytest.raises(ValueError):
+        RetryConfig(**kwargs)
+
+
 def test_notify_from_settings_builds_case_insensitive_channels():
     notify_instance = useNotify.from_settings(
         {

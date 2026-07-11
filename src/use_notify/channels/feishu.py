@@ -23,28 +23,18 @@ class Feishu(BaseChannel):
 
     def build_api_body(self, content, title=None):
         title = title or "消息提醒"
-        api_body_content = [{
-            "tag": "text",
-            "text": content
-        }]
+        api_body_content = [{"tag": "text", "text": content}]
 
         if self.config.at_all:
             api_body_content.append({"tag": "at", "user_id": "all"})
         if self.config.at_user_ids:
-            api_body_content.extend([{"tag": "at", "user_id": user_id_} for user_id_ in self.config.at_user_ids])
+            api_body_content.extend(
+                [{"tag": "at", "user_id": user_id_} for user_id_ in self.config.at_user_ids]
+            )
 
         return {
             "msg_type": "post",
-            "content": {
-                "post": {
-                    "zh_cn": {
-                        "title": title,
-                        "content": [
-                            api_body_content
-                        ]
-                    }
-                }
-            }
+            "content": {"post": {"zh_cn": {"title": title, "content": [api_body_content]}}},
         }
 
     def send(self, content, title=None):

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import logging
-from urllib.parse import quote
 
 import httpx
 
@@ -103,8 +102,6 @@ class PushDeer(BaseChannel):
         params = self._prepare_params(content, title)
 
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                self.api_url, params=params, headers=self.headers
-            )
+            response = await client.get(self.api_url, params=params, headers=self.headers)
             response.raise_for_status()
         logger.debug("`pushdeer` send message successfully")

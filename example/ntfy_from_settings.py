@@ -5,11 +5,7 @@
 from use_notify import useNotify
 
 # 基础配置
-settings = {
-    "NTFY": {
-        "topic": "my-notifications"
-    }
-}
+settings = {"NTFY": {"topic": "my-notifications"}}
 
 # 从配置创建通知器
 notify = useNotify.from_settings(settings)
@@ -27,16 +23,12 @@ advanced_settings = {
     "NTFY": {
         "topic": "my-notifications",
         "base_url": "https://ntfy.sh",  # 可选：自定义服务器
-        "priority": 3,                   # 可选：优先级 (1-5)
-        "tags": ["python", "demo"],     # 可选：标签
+        "priority": 3,  # 可选：优先级 (1-5)
+        "tags": ["python", "demo"],  # 可选：标签
         "click": "https://github.com/ntfy-sh/ntfy",  # 可选：点击链接
-        "actions": [                     # 可选：交互操作
-            {
-                "action": "view",
-                "label": "查看详情",
-                "url": "https://example.com"
-            }
-        ]
+        "actions": [  # 可选：交互操作
+            {"action": "view", "label": "查看详情", "url": "https://example.com"}
+        ],
     }
 }
 

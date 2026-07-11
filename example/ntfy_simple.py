@@ -4,6 +4,7 @@ Ntfy.sh 通知渠道简单使用示例
 """
 
 import asyncio
+
 from use_notify.channels import Ntfy
 
 # 基础使用

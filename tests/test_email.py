@@ -1,11 +1,8 @@
-import asyncio
-import smtplib
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from use_notify import useNotifyChannel
-
 
 EMAIL_CONFIG = {
     "server": "smtp.gmail.com",

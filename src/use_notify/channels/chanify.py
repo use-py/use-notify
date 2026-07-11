@@ -18,7 +18,7 @@ class Chanify(BaseChannel):
             base_url = self.config.base_url.rstrip("/")
         else:
             base_url = "https://api.chanify.net"
-        
+
         return f"{base_url}/v1/sender/{self.config.token}"
 
     @property

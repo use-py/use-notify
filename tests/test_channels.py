@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from use_notify import useNotifyChannel
+from use_notify.channels.utils import ProviderResponseError, validate_business_response
 
 
 def _mock_sync_http_response(json_data=None):
@@ -23,6 +24,31 @@ def _mock_async_http_response(json_data=None):
     else:
         response.json.side_effect = ValueError("response body is not JSON")
     return response
+
+
+def test_validate_business_response_ignores_non_dict_json_payloads():
+    response = _mock_sync_http_response(["ok"])
+
+    validate_business_response(response, "provider", {"code": {0}})
+
+
+def test_validate_business_response_serializes_dict_error_detail():
+    response = _mock_sync_http_response({"code": 1, "error": {"reason": "bad token"}})
+
+    with pytest.raises(ProviderResponseError) as error_info:
+        validate_business_response(response, "provider", {"code": {0}})
+
+    assert '"reason": "bad token"' in str(error_info.value)
+
+
+def test_validate_business_response_falls_back_to_payload_detail():
+    response = _mock_sync_http_response({"code": 1, "detail": "bad token"})
+
+    with pytest.raises(ProviderResponseError) as error_info:
+        validate_business_response(response, "provider", {"code": {0}})
+
+    assert '"code": 1' in str(error_info.value)
+    assert '"detail": "bad token"' in str(error_info.value)
 
 
 @patch("httpx.Client")

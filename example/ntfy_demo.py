@@ -8,6 +8,7 @@ Ntfy.sh 通知渠道使用示例
 3. 同步和异步发送
 4. 与其他渠道的组合使用
 """
+
 import asyncio
 
 from use_notify import useNotify

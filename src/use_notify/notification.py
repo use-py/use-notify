@@ -38,13 +38,20 @@ class RetryConfig:
             raise ValueError("retry_delay must be >= 0")
         if self.retry_backoff <= 0:
             raise ValueError("retry_backoff must be > 0")
+
+        try:
+            retriable_exceptions = tuple(self.retriable_exceptions)
+        except TypeError as exc:
+            raise ValueError("retriable_exceptions must only contain exception types") from exc
+
         invalid_exceptions = [
             exception_type
-            for exception_type in self.retriable_exceptions
+            for exception_type in retriable_exceptions
             if not isinstance(exception_type, type) or not issubclass(exception_type, BaseException)
         ]
         if invalid_exceptions:
             raise ValueError("retriable_exceptions must only contain exception types")
+        object.__setattr__(self, "retriable_exceptions", retriable_exceptions)
 
 
 class NotificationPublishError(RuntimeError):

@@ -77,6 +77,31 @@ async def test_publisher_retries_retriable_async_failure():
     assert len(channel.async_messages) == 2
 
 
+def test_retry_config_normalizes_retriable_exception_list():
+    retry_config = RetryConfig(retriable_exceptions=[RuntimeError])
+
+    assert retry_config.retriable_exceptions == (RuntimeError,)
+
+
+def test_publisher_retries_retriable_exception_list():
+    channel = RecordingChannel(sync_failures=[RuntimeError("temporary")])
+    publisher = Publisher([channel], max_retries=1, retriable_exceptions=[RuntimeError])
+
+    publisher.publish("hello")
+
+    assert len(channel.sync_messages) == 2
+
+
+@pytest.mark.asyncio
+async def test_publisher_retries_async_retriable_exception_list():
+    channel = RecordingChannel(async_failures=[RuntimeError("temporary")])
+    publisher = Publisher([channel], max_retries=1, retriable_exceptions=[RuntimeError])
+
+    await publisher.publish_async("hello")
+
+    assert len(channel.async_messages) == 2
+
+
 def test_publisher_does_not_retry_non_retriable_failure():
     channel = RecordingChannel(sync_failures=[ValueError("bad config")])
     publisher = Publisher([channel], max_retries=3)

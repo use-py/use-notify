@@ -5,6 +5,7 @@
 
 import asyncio
 import logging
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeoutError
 from typing import Optional
@@ -17,6 +18,13 @@ logger = logging.getLogger(__name__)
 class NotificationSender:
     """通知发送器"""
 
+    SYNC_TIMEOUT_WORKERS = 4
+    _sync_timeout_executor = ThreadPoolExecutor(
+        max_workers=SYNC_TIMEOUT_WORKERS,
+        thread_name_prefix="use-notify-sync-timeout",
+    )
+    _sync_timeout_slots = threading.BoundedSemaphore(SYNC_TIMEOUT_WORKERS)
+
     def __init__(self, notify_instance: Notify, timeout: Optional[float] = None):
         self.notify_instance = notify_instance
         self.timeout = timeout
@@ -25,17 +33,9 @@ class NotificationSender:
         """发送同步通知"""
         try:
             if self.timeout:
-                # 使用线程池执行同步调用，实现超时控制
-                # 无论是否在异步事件循环中，都能正确应用超时
-                executor = ThreadPoolExecutor(max_workers=1)
-                try:
-                    future = executor.submit(
-                        self.notify_instance.publish, title=title, content=content
-                    )
-                    future.result(timeout=self.timeout)
-                finally:
-                    # 使用 shutdown(wait=False) 立即关闭线程池，不等待线程完成
-                    executor.shutdown(wait=False)
+                # Python cannot stop a running sync send safely. Keep timed-out
+                # work bounded so callers return quickly without unbounded threads.
+                self._send_sync_with_timeout(title, content)
             else:
                 self.notify_instance.publish(title=title, content=content)
 
@@ -66,6 +66,31 @@ class NotificationSender:
     async def _send_async_internal(self, title: str, content: str) -> None:
         """内部异步发送方法"""
         await self.notify_instance.publish_async(title=title, content=content)
+
+    def _send_sync_with_timeout(self, title: str, content: str) -> None:
+        if not self._sync_timeout_slots.acquire(blocking=False):
+            raise asyncio.TimeoutError(
+                f"同步通知后台 worker 已满（最多 {self.SYNC_TIMEOUT_WORKERS} 个）"
+            )
+
+        try:
+            future = self._sync_timeout_executor.submit(
+                self.notify_instance.publish, title=title, content=content
+            )
+        except Exception:
+            self._sync_timeout_slots.release()
+            raise
+
+        future.add_done_callback(self._release_sync_timeout_slot)
+        try:
+            future.result(timeout=self.timeout)
+        except FutureTimeoutError:
+            future.cancel()
+            raise
+
+    @classmethod
+    def _release_sync_timeout_slot(cls, _future) -> None:
+        cls._sync_timeout_slots.release()
 
     def _handle_send_error(self, error: Exception) -> None:
         """处理发送错误"""

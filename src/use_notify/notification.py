@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple, Type, TypeVar
 import httpx
 
 from use_notify import channels as channels_models
+from use_notify.redaction import redact_exception_message, redact_text
 
 logger = logging.getLogger(__name__)
 RetriableExceptions = Tuple[Type[BaseException], ...]
@@ -51,7 +52,9 @@ class NotificationPublishError(RuntimeError):
 
     def __init__(self, failures: List[Tuple[str, Exception]]):
         self.failures = failures
-        failure_summary = ", ".join(f"{channel_name}: {error}" for channel_name, error in failures)
+        failure_summary = ", ".join(
+            f"{channel_name}: {redact_text(str(error))}" for channel_name, error in failures
+        )
         super().__init__(f"Failed to publish notification via: {failure_summary}")
 
 
@@ -224,7 +227,7 @@ class Publisher:
     @staticmethod
     def _raise_publish_error(failures):
         if len(failures) == 1:
-            raise failures[0][1]
+            raise redact_exception_message(failures[0][1])
         raise NotificationPublishError(failures)
 
     def _is_retriable_exception(self, error: Exception, retry_config: RetryConfig) -> bool:

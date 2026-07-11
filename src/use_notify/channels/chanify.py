@@ -1,16 +1,13 @@
-# -*- coding: utf-8 -*-
-import logging
-
-import httpx
-
-from .base import BaseChannel
-from .utils import validate_business_response
-
-logger = logging.getLogger(__name__)
+from .http import HttpChannel
 
 
-class Chanify(BaseChannel):
+class Chanify(HttpChannel):
     """chanify 消息通知"""
+
+    payload_kind = "data"
+    provider_name = "chanify"
+    success_fields = {"res": {0}, "code": {0}}
+    success_log_message = "`chanify` send successfully"
 
     @property
     def api_url(self):
@@ -31,18 +28,5 @@ class Chanify(BaseChannel):
         text = f"{title}\n{content}" if title else content
         return {"text": text}
 
-    def send(self, content, title=None):
-        api_body = self.build_api_body(content, title)
-        with httpx.Client() as client:
-            response = client.post(self.api_url, data=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "chanify", {"res": {0}, "code": {0}})
-        logger.debug("`chanify` send successfully")
-
-    async def send_async(self, content, title=None):
-        api_body = self.build_api_body(content, title)
-        async with httpx.AsyncClient() as client:
-            response = await client.post(self.api_url, data=api_body, headers=self.headers)
-            response.raise_for_status()
-            validate_business_response(response, "chanify", {"res": {0}, "code": {0}})
-        logger.debug("`chanify` send successfully")
+    def build_request_payload(self, content, title=None):
+        return self.build_api_body(content, title)

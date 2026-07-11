@@ -52,6 +52,24 @@ def test_bark_send_builds_expected_request(mock_client):
     response.raise_for_status.assert_called_once_with()
 
 
+def test_bark_minimal_config_omits_missing_optional_fields():
+    channel = useNotifyChannel.Bark({"token": "token"})
+
+    assert channel._prepare_payload("hello", "title") == {
+        "body": "hello",
+        "title": "title",
+    }
+
+
+def test_bark_preserves_explicit_falsy_optional_values():
+    channel = useNotifyChannel.Bark({"token": "token", "badge": 0})
+
+    assert channel._prepare_payload("hello") == {
+        "body": "hello",
+        "badge": 0,
+    }
+
+
 @patch("httpx.AsyncClient")
 @pytest.mark.asyncio
 async def test_chanify_send_async_builds_expected_request(mock_client):
@@ -168,6 +186,13 @@ def test_wechat_send_rejects_business_error_response(mock_client):
 def test_ntfy_requires_topic_and_builds_payload():
     with pytest.raises(ValueError, match="topic"):
         useNotifyChannel.Ntfy({})
+
+    minimal_channel = useNotifyChannel.Ntfy({"topic": "alerts"})
+    assert minimal_channel.api_url == "https://ntfy.sh/alerts"
+    assert minimal_channel._prepare_payload("hello", "title") == {
+        "message": "hello",
+        "title": "title",
+    }
 
     channel = useNotifyChannel.Ntfy(
         {

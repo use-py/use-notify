@@ -22,14 +22,14 @@ class Ntfy(BaseChannel):
         super().__init__(config)
 
         # 验证必需的配置参数
-        if not hasattr(self.config, "topic") or not self.config.topic:
+        if "topic" not in self.config or not self.config.topic:
             raise ValueError("Ntfy channel requires 'topic' in config")
 
     @property
     def api_url(self):
         """构建 ntfy.sh API URL"""
         # 检查是否有自定义 base_url，否则使用默认值
-        if hasattr(self.config, "base_url") and self.config.base_url:
+        if "base_url" in self.config and self.config.base_url:
             base_url = self.config.base_url.rstrip("/")
         else:
             base_url = "https://ntfy.sh"
@@ -61,23 +61,23 @@ class Ntfy(BaseChannel):
 
         # 添加高级功能支持
         # 优先级支持 (1-5)
-        if hasattr(self.config, "priority") and self.config.priority is not None:
+        if "priority" in self.config and self.config.priority is not None:
             payload["priority"] = self.config.priority
 
         # 标签支持
-        if hasattr(self.config, "tags") and self.config.tags:
+        if "tags" in self.config and self.config.tags:
             payload["tags"] = self.config.tags
 
         # 点击 URL 支持
-        if hasattr(self.config, "click") and self.config.click:
+        if "click" in self.config and self.config.click:
             payload["click"] = self.config.click
 
         # 附件 URL 支持
-        if hasattr(self.config, "attach") and self.config.attach:
+        if "attach" in self.config and self.config.attach:
             payload["attach"] = self.config.attach
 
         # 操作支持
-        if hasattr(self.config, "actions") and self.config.actions:
+        if "actions" in self.config and self.config.actions:
             payload["actions"] = self.config.actions
 
         return payload

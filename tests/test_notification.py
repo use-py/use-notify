@@ -8,6 +8,7 @@ import use_notify.notification as notification_module
 from tests.helpers import RecordingChannel, make_http_status_error
 from use_notify import NotificationPublishError, useNotify, useNotifyChannel
 from use_notify.notification import Publisher, RetryConfig
+from use_notify.redaction import redact_text
 
 
 class BlockingSyncChannel(RecordingChannel):
@@ -176,6 +177,26 @@ def test_aggregate_failure_redacts_secrets_from_exception_message():
     assert "bark-secret-token" not in message
     assert "wechat-secret-token" not in message
     assert "<redacted>" in message
+
+
+def test_redacts_custom_base_url_path_secrets():
+    message = (
+        "failed https://bark.example.com/bark-secret-token "
+        "and https://ntfy.example.com/my-secret-topic"
+    )
+
+    redacted = redact_text(message)
+
+    assert "bark-secret-token" not in redacted
+    assert "my-secret-topic" not in redacted
+    assert "https://bark.example.com/<redacted>" in redacted
+    assert "https://ntfy.example.com/<redacted>" in redacted
+
+
+def test_redaction_keeps_multi_segment_urls_visible():
+    message = "docs https://example.com/path/to/page"
+
+    assert redact_text(message) == message
 
 
 def test_publisher_copies_initial_channel_collection():

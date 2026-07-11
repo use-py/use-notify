@@ -13,6 +13,7 @@ from use_notify import (
     useNotify,
 )
 from use_notify.decorator import NotifyConfigError, NotifyDecorator
+from use_notify.decorator.sender import NotificationSender
 
 
 class TestNotifyDecorator:
@@ -190,9 +191,11 @@ class TestNotifyDecorator:
         """测试同步超时不阻塞主线程"""
         import time
 
+        release = threading.Event()
+
         class SlowChannel(RecordingChannel):
             def send(self, content, title=None):
-                time.sleep(2)
+                release.wait(timeout=1)
                 super().send(content, title)
 
         channel = SlowChannel()
@@ -202,23 +205,26 @@ class TestNotifyDecorator:
         def task():
             return "ok"
 
-        start = time.time()
-        result = task()
-        elapsed = time.time() - start
+        try:
+            start = time.time()
+            result = task()
+            elapsed = time.time() - start
 
-        # 函数应该立即返回，不等待2秒
-        assert result == "ok"
-        assert elapsed < 0.5, f"函数执行时间 {elapsed:.2f}s 超过预期"
-        # 超时错误应该被记录（不抛出，避免影响原函数执行）
+            # 函数应该立即返回，不等待后台发送
+            assert result == "ok"
+            assert elapsed < 0.5, f"函数执行时间 {elapsed:.2f}s 超过预期"
+            # 超时错误应该被记录（不抛出，避免影响原函数执行）
+        finally:
+            release.set()
 
     @pytest.mark.asyncio
     async def test_sync_timeout_in_async_event_loop(self):
         """测试同步超时在异步事件循环中也能正确应用"""
-        import time
+        release = threading.Event()
 
         class SlowChannel(RecordingChannel):
             def send(self, content, title=None):
-                time.sleep(2)
+                release.wait(timeout=1)
                 super().send(content, title)
 
         channel = SlowChannel()
@@ -230,16 +236,56 @@ class TestNotifyDecorator:
 
         import asyncio
 
-        start = asyncio.get_event_loop().time()
+        try:
+            start = asyncio.get_event_loop().time()
 
-        # 在异步上下文中调用同步装饰器
-        result = sync_task()
+            # 在异步上下文中调用同步装饰器
+            result = sync_task()
 
-        elapsed = asyncio.get_event_loop().time() - start
+            elapsed = asyncio.get_event_loop().time() - start
 
-        # 函数应该立即返回，不等待2秒
-        assert result == "ok"
-        assert elapsed < 0.5, f"函数执行时间 {elapsed:.2f}s 超过预期"
+            # 函数应该立即返回，不等待后台发送
+            assert result == "ok"
+            assert elapsed < 0.5, f"函数执行时间 {elapsed:.2f}s 超过预期"
+        finally:
+            release.set()
+
+    def test_sync_timeout_background_delivery_is_bounded(self):
+        """同步超时发送最多占用固定数量的后台 worker"""
+
+        release = threading.Event()
+        started_limit = threading.Event()
+        lock = threading.Lock()
+
+        class BlockingChannel(RecordingChannel):
+            def __init__(self):
+                super().__init__()
+                self.started_count = 0
+
+            def send(self, content, title=None):
+                with lock:
+                    self.started_count += 1
+                    if self.started_count >= NotificationSender.SYNC_TIMEOUT_WORKERS:
+                        started_limit.set()
+
+                release.wait(timeout=2)
+                super().send(content, title)
+
+        channel = BlockingChannel()
+        notify_instance = useNotify([channel])
+
+        @notify(notify_instance=notify_instance, timeout=0.01)
+        def task():
+            return "ok"
+
+        try:
+            for _ in range(NotificationSender.SYNC_TIMEOUT_WORKERS + 2):
+                assert task() == "ok"
+
+            assert started_limit.wait(timeout=1)
+            assert channel.started_count == NotificationSender.SYNC_TIMEOUT_WORKERS
+        finally:
+            release.set()
 
     def test_sync_send_without_timeout(self):
         """测试不设置超时时正常发送"""

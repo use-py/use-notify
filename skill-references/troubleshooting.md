@@ -55,7 +55,9 @@ Non-retriable examples include:
 ## Timeout behavior
 
 - Decorator `timeout` applies to notification delivery, not to the wrapped business function.
-- Sync delivery uses a short-lived thread pool to avoid blocking the caller forever.
+- Sync delivery uses a bounded background worker pool. A timed-out sync send cannot be
+  force-cancelled safely and may still finish later, but at most four timed-out sync sends
+  can continue in the background at once.
 - Async delivery uses `asyncio.wait_for(...)`.
 
 ## Validation pitfalls

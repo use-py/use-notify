@@ -20,7 +20,7 @@ class Bark(BaseChannel):
         else:
             base_url = "https://api.day.app"
 
-        return f"{base_url}/{self.config.token}"
+        return f"{base_url}/{self.resolve_config_value('token')}"
 
     @property
     def headers(self):

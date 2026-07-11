@@ -16,7 +16,7 @@ class Feishu(BaseChannel):
 
     @property
     def api_url(self):
-        return f"https://open.feishu.cn/open-apis/bot/v2/hook/{self.config.token}"
+        return f"https://open.feishu.cn/open-apis/bot/v2/hook/{self.resolve_config_value('token')}"
 
     @property
     def headers(self):

@@ -34,7 +34,7 @@ class Ntfy(BaseChannel):
         else:
             base_url = "https://ntfy.sh"
 
-        return f"{base_url}/{self.config.topic}"
+        return f"{base_url}/{self.resolve_config_value('topic')}"
 
     @property
     def headers(self):

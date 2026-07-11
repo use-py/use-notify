@@ -6,7 +6,7 @@ from use_notify import useNotifyChannel
 
 EMAIL_CONFIG = {
     "server": "smtp.gmail.com",
-    "port": 587,
+    "port": 465,
     "username": "user@example.com",
     "password": "secret",
     "from_email": "sender@example.com",
@@ -15,14 +15,12 @@ EMAIL_CONFIG = {
 
 
 @patch("smtplib.SMTP_SSL")
-def test_email_initializes_and_logs_in(mock_smtp):
-    smtp = mock_smtp.return_value
-
+@patch("smtplib.SMTP")
+def test_email_initialization_is_lazy(mock_smtp, mock_smtp_ssl):
     channel = useNotifyChannel.Email(EMAIL_CONFIG)
 
-    mock_smtp.assert_called_once_with("smtp.gmail.com", 587)
-    smtp.connect.assert_called_once_with("smtp.gmail.com", 587)
-    smtp.login.assert_called_once_with("user@example.com", "secret")
+    mock_smtp.assert_not_called()
+    mock_smtp_ssl.assert_not_called()
     assert channel.config.from_email == "sender@example.com"
 
 
@@ -35,27 +33,51 @@ def test_email_validates_required_fields():
 
 
 @patch("smtplib.SMTP_SSL")
-def test_email_send_uses_sendmail(mock_smtp):
-    smtp = mock_smtp.return_value
+def test_email_send_uses_ssl_sendmail_and_quits(mock_smtp_ssl):
+    smtp = mock_smtp_ssl.return_value
     channel = useNotifyChannel.Email(EMAIL_CONFIG)
 
     channel.send("hello", "title")
 
+    mock_smtp_ssl.assert_called_once_with("smtp.gmail.com", 465)
+    smtp.login.assert_called_once_with("user@example.com", "secret")
     smtp.sendmail.assert_called_once()
     args = smtp.sendmail.call_args[0]
     assert args[0] == "sender@example.com"
     assert args[1] == ["receiver@example.com"]
     assert "title" in args[2]
+    smtp.quit.assert_called_once_with()
+
+
+@patch("smtplib.SMTP")
+def test_email_send_uses_starttls_when_configured(mock_smtp):
+    smtp = mock_smtp.return_value
+    channel = useNotifyChannel.Email(
+        {
+            **EMAIL_CONFIG,
+            "port": 587,
+            "use_ssl": False,
+            "use_tls": True,
+        }
+    )
+
+    channel.send("hello", "title")
+
+    mock_smtp.assert_called_once_with("smtp.gmail.com", 587)
+    smtp.starttls.assert_called_once_with()
+    smtp.login.assert_called_once_with("user@example.com", "secret")
+    smtp.sendmail.assert_called_once()
+    smtp.quit.assert_called_once_with()
 
 
 @patch("smtplib.SMTP_SSL")
-@patch("asyncio.get_event_loop")
+@patch("asyncio.get_running_loop")
 @pytest.mark.asyncio
-async def test_email_send_async_uses_executor(mock_get_event_loop, mock_smtp):
-    smtp = mock_smtp.return_value
+async def test_email_send_async_uses_executor(mock_get_running_loop, mock_smtp_ssl):
+    smtp = mock_smtp_ssl.return_value
     loop = MagicMock()
     loop.run_in_executor = AsyncMock(return_value=None)
-    mock_get_event_loop.return_value = loop
+    mock_get_running_loop.return_value = loop
     channel = useNotifyChannel.Email(EMAIL_CONFIG)
 
     await channel.send_async("hello", "title")
@@ -67,10 +89,13 @@ async def test_email_send_async_uses_executor(mock_get_event_loop, mock_smtp):
 
 
 @patch("smtplib.SMTP_SSL")
+@patch("smtplib.SMTP")
 @patch("use_notify.channels.email.logger")
-def test_email_send_without_receivers_only_logs(mock_logger, mock_smtp):
+def test_email_send_without_receivers_only_logs(mock_logger, mock_smtp, mock_smtp_ssl):
     channel = useNotifyChannel.Email({k: v for k, v in EMAIL_CONFIG.items() if k != "to_emails"})
 
     channel.send("hello")
 
     mock_logger.error.assert_called_once_with("请先设置接收邮箱<to_emails>")
+    mock_smtp.assert_not_called()
+    mock_smtp_ssl.assert_not_called()

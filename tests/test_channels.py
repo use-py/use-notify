@@ -76,6 +76,14 @@ def test_http_channel_rejects_unsupported_payload_kind():
         channel.send("hello")
 
 
+@pytest.mark.asyncio
+async def test_http_channel_async_rejects_unsupported_method():
+    channel = UnsupportedMethodChannel({})
+
+    with pytest.raises(ValueError, match="Unsupported HTTP method"):
+        await channel.send_async("hello")
+
+
 def test_validate_business_response_ignores_non_dict_json_payloads():
     response = _mock_sync_http_response(["ok"])
 

@@ -68,14 +68,15 @@ def job():
 
 ## Build from settings
 
-Channel names are matched case-insensitively.
+Channel names are matched case-insensitively through the explicit channel registry.
+Unknown channel keys raise `ValueError`.
 
 ```python
 from use_notify import useNotify
 
 notify = useNotify.from_settings(
     {
-        "bark": {"token": "bark-token"},
+        "bark": {"token": lambda: "bark-token"},
         "wecom": {"token": "wechat-token"},
     }
 )

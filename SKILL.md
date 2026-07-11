@@ -60,9 +60,12 @@ Read only the references needed for the request.
 - Use exact exported names: `useNotify`, `useNotifyChannel`, `notify`, `NotificationPublishError`, `RetryConfig`.
 - Use exact channel class names: `Bark`, `Chanify`, `Console`, `Ding`, `Email`, `Feishu`, `Ntfy`, `PushDeer`, `PushOver`, `WeChat`, `WeCom`.
 - `WeCom` is an alias of `WeChat`.
+- Credential fields can be static strings or zero-argument callables. Common callable fields are `token`, `topic`, and `user`; read `skill-references/channels.md` before generating dynamic credential examples.
+- `useNotify.from_settings(settings)` resolves names through the explicit channel registry, matches keys case-insensitively, and raises `ValueError` for unknown channel keys.
 - Custom channels must implement `send(content, title=None)` and `send_async(content, title=None)`.
 - The decorator parameters are `notify_on_success` and `notify_on_error`, not older variants like `on_success` or `on_failure`.
 - Do not suggest `notify_on_success=False` and `notify_on_error=False` together; current validation rejects that.
+- Do not pass bool values for numeric config. `max_retries=True`, `retry_delay=False`, `retry_backoff=True`, and `Email({"port": True})` are rejected even though Python bool is an int subclass.
 - Default notify instances are scoped to the current execution context, not a process-wide global singleton.
 
 ## Response guidance

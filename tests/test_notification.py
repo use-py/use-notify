@@ -417,6 +417,15 @@ def test_notify_from_settings_builds_case_insensitive_channels():
     assert isinstance(notify_instance.channels[1], useNotifyChannel.WeCom)
 
 
+def test_notify_from_settings_ignores_unregistered_module_attributes(monkeypatch):
+    monkeypatch.setattr(
+        notification_module.channels_models, "Ghost", useNotifyChannel.Bark, raising=False
+    )
+
+    with pytest.raises(ValueError, match="Unknown channel ghost"):
+        useNotify.from_settings({"ghost": {"token": "x"}})
+
+
 def test_notify_from_settings_rejects_unknown_channel():
     with pytest.raises(ValueError, match="Unknown channel"):
         useNotify.from_settings({"unknown": {"token": "x"}})

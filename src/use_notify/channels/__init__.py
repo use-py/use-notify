@@ -13,3 +13,21 @@ from .wechat import WeChat
 
 # 兼容wecom
 WeCom = WeChat
+
+CHANNEL_REGISTRY = {
+    "bark": Bark,
+    "chanify": Chanify,
+    "console": Console,
+    "ding": Ding,
+    "email": Email,
+    "feishu": Feishu,
+    "ntfy": Ntfy,
+    "pushdeer": PushDeer,
+    "pushover": PushOver,
+    "wechat": WeChat,
+    "wecom": WeChat,
+}
+
+
+def get_channel_class(name):
+    return CHANNEL_REGISTRY.get(name.lower())

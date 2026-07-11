@@ -270,7 +270,8 @@ class Notify(Publisher):
         Example:
             settings = {
             ...     "BARK": {"token": "your token"},
-            ...     "DINGTALK": {"access_token": "your access token"},
+            ...     "DING": {"token": "your token"},
+            ...     "NTFY": {"topic": lambda: "alerts"},
             ... }
             notify = Notify.from_settings(settings)
             notify.publish(title="消息标题", content="消息正文")

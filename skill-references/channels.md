@@ -160,12 +160,29 @@ useNotifyChannel.Console()
 
 Credential fields can be static strings or zero-argument callables. The callable
 is resolved when the channel builds the request, so application code can refresh
-or cache credentials outside `use-notify`:
+or cache credentials outside `use-notify`.
+
+Common dynamic fields:
+
+- `token` for Bark, Chanify, Ding, Feishu, PushDeer, PushOver, WeChat, and WeCom.
+- `topic` for Ntfy.
+- `user` for PushOver.
 
 ```python
 useNotifyChannel.Bark({"token": lambda: get_current_bark_token()})
+useNotifyChannel.Ntfy({"topic": lambda: get_current_ntfy_topic()})
+useNotifyChannel.PushOver(
+    {
+        "token": lambda: get_current_pushover_app_token(),
+        "user": lambda: get_current_pushover_user_key(),
+    }
+)
 ```
 
 This library does not implement provider-specific OAuth refresh flows, background
 refresh threads, or credential persistence. It only reads the current credential
 value before sending.
+
+`useNotify.from_settings(...)` preserves callable credential values. Channel keys
+are matched case-insensitively through the explicit registry; unknown keys raise
+`ValueError` instead of falling back to module attributes.

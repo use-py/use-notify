@@ -66,6 +66,9 @@ Non-retriable examples include:
 - `max_retries` must be `>= 0`.
 - `retry_delay` must be `>= 0`.
 - `retry_backoff` must be `> 0`.
+- Bool values are rejected for numeric config even though Python treats `bool` as
+  an `int` subclass. Do not use `max_retries=True`, `retry_delay=False`,
+  `retry_backoff=True`, or `Email({"port": True})`.
 - `retriable_exceptions` must contain exception types, not strings or instances.
 - `Email` validates `server`, `port`, `username`, `password`, and `from_email`
   during initialization, then connects and logs in when a message is sent.

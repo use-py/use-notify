@@ -33,13 +33,31 @@ notify.publish(title="消息标题", content="消息正文")
 
 #### 动态凭据
 
-`token` 等凭据字段可以传入字符串，也可以传入无参数函数。发送时会解析函数返回值，适合把刷新、缓存逻辑放在业务侧：
+`token`、`topic`、`user` 等凭据字段可以传入字符串，也可以传入无参数函数。发送时会解析函数返回值，适合把刷新、缓存逻辑放在业务侧：
 
 ```python
 useNotifyChannel.Bark({"token": lambda: get_current_bark_token()})
+useNotifyChannel.Ntfy({"topic": lambda: get_current_ntfy_topic()})
+useNotifyChannel.PushOver({
+    "token": lambda: get_current_app_token(),
+    "user": lambda: get_current_user_key(),
+})
 ```
 
 库只负责发送前读取当前凭据，不内置各平台 OAuth 或后台刷新线程。
+
+`useNotify.from_settings(...)` 同样支持动态凭据，并使用内置渠道注册表解析渠道名：
+
+```python
+from use_notify import useNotify
+
+notify = useNotify.from_settings({
+    "bark": {"token": lambda: get_current_bark_token()},
+    "ntfy": {"topic": lambda: get_current_ntfy_topic()},
+})
+```
+
+渠道名大小写不敏感；未知渠道名会抛出 `ValueError`，避免配置拼写错误被静默忽略。
 
 #### 装饰器使用（推荐）
 
@@ -133,7 +151,7 @@ class Custom(useNotifyChannel.BaseChannel):
 #### Agent Skill
 
 - Installable skill package: `SKILL.md` + `skill-references/`
-- Purpose: help AI coding agents generate correct `use-notify` integration snippets, choose channels, and troubleshoot retry/error behavior
+- Purpose: help AI coding agents generate correct `use-notify` integration snippets, choose channels, configure dynamic credentials, and troubleshoot retry/error behavior
 
 #### 特性
 
@@ -142,4 +160,5 @@ class Custom(useNotifyChannel.BaseChannel):
 - 🎯 **装饰器模式**: 使用 `@notify` 装饰器自动化通知
 - 🔧 **高度可扩展**: 轻松添加自定义通知渠道
 - 📱 **多渠道支持**: 支持微信、钉钉、Bark、邮件等多种通知方式
+- 🔐 **动态凭据**: 支持发送前解析 `token`、`topic`、`user` 等凭据字段
 - ⚙️ **灵活配置**: 支持条件通知、自定义模板、默认实例、超时与重试等高级功能

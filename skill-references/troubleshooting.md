@@ -67,7 +67,10 @@ Non-retriable examples include:
 - `retry_delay` must be `>= 0`.
 - `retry_backoff` must be `> 0`.
 - `retriable_exceptions` must contain exception types, not strings or instances.
-- `Email` requires `server`, `port`, `username`, `password`, and `from_email` during initialization.
+- `Email` validates `server`, `port`, `username`, `password`, and `from_email`
+  during initialization, then connects and logs in when a message is sent.
+- `Email` uses SSL by default on port `465` and STARTTLS by default on port `587`;
+  set `use_ssl` or `use_tls` explicitly to override that behavior.
 
 ## Current public exports
 

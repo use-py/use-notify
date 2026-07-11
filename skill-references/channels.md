@@ -70,9 +70,14 @@ useNotifyChannel.Email(
         "password": "app-password",
         "from_email": "bot@example.com",
         "to_emails": ["ops@example.com"],
+        "use_ssl": True,
+        "use_tls": False,
     }
 )
 ```
+
+For port `465`, SSL is used by default. For port `587`, STARTTLS is used by
+default unless `use_ssl` or `use_tls` is set explicitly.
 
 ### Chanify
 
